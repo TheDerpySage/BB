@@ -5,6 +5,7 @@ import discord
 from discord.ext import commands
 import discord.abc
 import sys, traceback
+import bb_config
 
 def get_prefix(bot, msg):
     """A callable Prefix for our bot. This could be edited to allow per server prefixes."""
@@ -58,5 +59,4 @@ async def on_command_error(ctx, error):
         await ctx.send("?")
     raise error
 
-#https://discordapp.com/oauth2/authorize?client_id=593202472839938087&scope=bot&permissions=0
-bot.run("NTkzMjAyNDcyODM5OTM4MDg3.XRKdRQ.3AugkXQDf3X_n3hZzkn3-eBH880", reconnect=True)
+bot.run(bb_config.token, reconnect=True)
