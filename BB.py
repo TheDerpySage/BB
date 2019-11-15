@@ -30,13 +30,13 @@ async def on_ready():
     print('------')
     await bot.change_presence(activity=discord.Game(name='Use bb$help'))
     # In order to edit her appearence, new parameters can be entered here.
-    #fp = open("assets/pfp1.jpg", "rb")
+    #fp = open("assets/pfp4.png", "rb")
     #await bot.user.edit(password=None, username="BB", avatar=fp.read())
     if __name__ == '__main__':
         for extension in startup_extensions:
             try:
                 bot.load_extension(extension)
-            except Exception as e:
+            except:
                 print('Failed to load extension ' + extension, file=sys.stderr)
                 traceback.print_exc()
     print('Successfully logged in and booted...!')

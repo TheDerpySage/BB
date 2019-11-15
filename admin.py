@@ -1,16 +1,24 @@
 import discord
 from discord.ext import commands
+import bb_config
+import aiohttp
+
+# Self made check since is_owner() doesnt appear to be working and includes server owner
+# For Myself and the Server Owner
+def is_super(ctx):
+	return (ctx.message.author.id == bb_config.owner_id) or (ctx.message.author == ctx.message.server.owner)	
+
+# Async method to load the bytes of a file and return bytes
+async def downloadBytes(session : aiohttp.ClientSession, url : str):
+	async with session.get(url) as response:
+		assert response.status == 200
+		return await response.read()
 
 class AdminCog(commands.Cog):
 	'''Majora/Server Owner Only stuff'''
 
 	def __init__(self, bot):
-		self.bot = bot
-
-	# Self made check since is_owner() doesnt appear to be working and includes server owner
-	# For Myself and the Server Owner
-	def is_super(ctx):
-		return (ctx.message.author.id == 89033229100683264) or (ctx.message.author == ctx.message.server.owner)
+		self.bot = bot	
 
 	@commands.command(name="echo", hidden=True)
 	@commands.check(is_super)
@@ -73,6 +81,30 @@ class AdminCog(commands.Cog):
 		if user.dm_channel == None:
 			await user.create_dm()
 		await user.dm_channel.send(message)
+
+	@commands.command(name='pfp', hidden=True)
+	@commands.check(is_super)
+	async def update_profile_picture(self, ctx):
+		try:
+			url = ctx.message.attachments[0].url
+			session = aiohttp.ClientSession()
+			item = await downloadBytes(session, url)
+			await session.close()
+			await self.bot.user.edit(password=None, avatar=item)
+		except Exception as e:
+			await ctx.send('**`ERROR: %s`**' % e)
+		else:
+			await ctx.send('**`SUCCESS`**')
+
+	@commands.command(name='name', hidden=True)
+	@commands.check(is_super)
+	async def update_profile_name(self, ctx, *, newname: str):
+		try:
+			await self.bot.user.edit(password=None, username=newname)
+		except Exception as e:
+			await ctx.send('**`ERROR: %s`**' % e)
+		else:
+			await ctx.send('**`SUCCESS`**')
 
 	@commands.command(aliases=['about'])
 	async def credits(self, ctx):

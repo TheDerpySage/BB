@@ -36,7 +36,7 @@ class ServerCog(commands.Cog):
         """Service Status"""
         await ctx.trigger_typing()
         #Check Nginx
-        result = socket_test('shimakaze.thederpysage.com',80)
+        result = socket_test('laffey.thederpysage.com',80)
         if result == 0:
             toadHealth = ":white_check_mark:"
             public = True
@@ -99,9 +99,9 @@ class ServerCog(commands.Cog):
         if bool_ping("akagi.thederpysage.com"):
             akagi = ":white_check_mark:"
         else : akagi = ":no_entry:"
-        if bool_ping("shimakaze.thederpysage.com"):
-            shimakaze = ":white_check_mark:"
-        else : shimakaze = ":no_entry:"
+        if bool_ping("laffey.thederpysage.com"):
+            laffey = ":white_check_mark:"
+        else : laffey = ":no_entry:"
         if bool_ping("mutsu.thederpysage.com"):
             mutsu = ":white_check_mark:"
         else : mutsu = ":no_entry:"
@@ -112,10 +112,10 @@ class ServerCog(commands.Cog):
             kaga = ":white_check_mark:"
         else : kaga = ":no_entry:"
         temp = ("**SERVERS**" +
-        "\nNagato:\t" + nagato +
         "\nAkagi:\t" + akagi +
         "\nKaga:\t" + kaga +
-        "\nShimakaze:\t" + shimakaze +
+        "\nLaffey:\t" + laffey +
+        "\nNagato:\t" + nagato +
         "\nMutsu:\t" + mutsu +
         "\nFubuki:\t" + fubuki)
         await ctx.send(temp)
@@ -148,7 +148,7 @@ async def monitor(bot):
     '''Reporting for downtime for mission critical servers.'''
     await bot.wait_until_ready()
     reporting = Reporting(bot, 585841199156559892)
-    serverList = ["nagato.thederpysage.com", "akagi.thederpysage.com", "kaga.thederpysage.com", "shimakaze.thederpysage.com", "mutsu.thederpysage.com"]
+    serverList = ["akagi.thederpysage.com", "kaga.thederpysage.com", "laffey.thederpysage.com", "nagato.thederpysage.com", "mutsu.thederpysage.com"]
     print('Starting Monitoring Task...')
     while True:
         for x in serverList: 
