@@ -9,15 +9,14 @@ import bb_config
 
 def get_prefix(bot, msg):
     """A callable Prefix for our bot. This could be edited to allow per server prefixes."""
-    prefixes = ['bb$', 'BB, ', 'bb, ', '@BB#2628 ']
+    prefixes = [bot.user.name[0:1].lower()+'$', bot.user.name+', ', "Ladies, ", "BB, "]
     # Check to see if we are outside of a guild. e.g DM's etc.
     if msg.channel is None:
         return ''
     # If we are in a guild, we allow for the user to mention us or use any of the prefixes in our list.
     return commands.when_mentioned_or(*prefixes)(bot, msg)
 
-desc = '''BB
-Written and Developed by theDerpySage'''
+desc = '''Written and Developed by theDerpySage'''
 
 startup_extensions = ['simple', 'server', 'admin']
 bot = commands.Bot(command_prefix=get_prefix,description=desc)
@@ -28,7 +27,7 @@ async def on_ready():
     print(bot.user.name)
     print(bot.user.id)
     print('------')
-    await bot.change_presence(activity=discord.Game(name='Use bb$help'))
+    await bot.change_presence(activity=discord.Game(name='Use '+bot.user.name[0:1].lower()+'$help'))
     # In order to edit her appearence, new parameters can be entered here.
     #fp = open("assets/pfp4.png", "rb")
     #await bot.user.edit(password=None, username="BB", avatar=fp.read())

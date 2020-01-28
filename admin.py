@@ -6,7 +6,7 @@ import aiohttp
 # Self made check since is_owner() doesnt appear to be working and includes server owner
 # For Myself and the Server Owner
 def is_super(ctx):
-	return (ctx.message.author.id == bb_config.owner_id) or (ctx.message.author == ctx.message.server.owner)	
+	return (ctx.message.author.id == bb_config.owner_id) or (ctx.message.author == ctx.message.guild.owner)
 
 # Async method to load the bytes of a file and return bytes
 async def downloadBytes(session : aiohttp.ClientSession, url : str):
@@ -20,14 +20,14 @@ class AdminCog(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot	
 
-	@commands.command(name="echo", hidden=True)
+	@commands.command(name="say", hidden=True)
 	@commands.check(is_super)
 	async def echo(self, ctx, *, message: str):
 		await ctx.send(message)
 
-	@commands.command(name="stop", hidden=True)
+	@commands.command(name="exit", hidden=True)
 	@commands.check(is_super)
-	async def stop(self, ctx):
+	async def exit_bot(self, ctx):
 		await ctx.send("Shutting down...")
 		exit()
 
@@ -109,7 +109,7 @@ class AdminCog(commands.Cog):
 	@commands.command(aliases=['about'])
 	async def credits(self, ctx):
 		'''Show credits.'''
-		await ctx.send("`Nagato created by TheDerpySage.\nHosted on vinny.thederpysage.com.\nQuestions/Concerns? Contact via Discord.\n@TheDerpySage#2049`")
+		await ctx.send("`BB created by TheDerpySage.\nHosted on vinny.thederpysage.com.\nQuestions/Concerns? Contact via Discord.\n@TheDerpySage#2049`")
 
 def setup(bot):
 	bot.add_cog(AdminCog(bot))

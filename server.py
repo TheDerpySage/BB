@@ -3,6 +3,7 @@ from discord.ext import commands
 import socket
 from urllib.request import urlopen
 import os
+import subprocess
 from datetime import timedelta
 import asyncio
 
@@ -120,12 +121,6 @@ class ServerCog(commands.Cog):
         "\nFubuki:\t" + fubuki)
         await ctx.send(temp)
 
-    @commands.command(aliases=['ping'])
-    async def output_ping(self, ctx, hostname):
-        """Pings a given host to check if it's reachable"""
-        await ctx.trigger_typing()
-        await ctx.send(string_ping(hostname))
-
 class Reporting(object):
     def __init__(self, bot, channel_id):
         #the report list keeps track of down servers already reported so we dont repeat notifications
@@ -156,9 +151,14 @@ async def monitor(bot):
         await asyncio.sleep(120)
 
 def ping(host):
-    #This is a Linux Ping, edit for Windows
-    response = os.system("ping -c 1 -W 2 " + host)
-    return response
+    #OS Neutral Ping
+    assert (os.name == 'posix' or os.name == 'nt'), "Unrecognized os.name"
+    if os.name == 'posix':
+        result = subprocess.run(['ping', '-c', '1', '-W', '2', host], stdout=subprocess.DEVNULL)
+        return result.returncode
+    elif os.name == 'nt':
+        result = subprocess.run(['ping', '/r', '1', '/w', '2', host], stdout=subprocess.DEVNULL)
+        return result.returncode
 
 def string_ping(host):
     response = ping(host)

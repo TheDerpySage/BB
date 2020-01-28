@@ -17,6 +17,7 @@ name before the application will run.
 
 TO-DO
 =============
-Improve her Ping function, I don't like it's current implementation. 
+Ping Improved
+Next, improve reporting to be persistent across crashes...
 
 
