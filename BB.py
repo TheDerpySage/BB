@@ -5,11 +5,12 @@ import discord
 from discord.ext import commands
 import discord.abc
 import sys, traceback
+from datetime import datetime
 import bb_config
 
 def get_prefix(bot, msg):
     """A callable Prefix for our bot. This could be edited to allow per server prefixes."""
-    prefixes = [bot.user.name[0:1].lower()+'$', bot.user.name+', ', "Ladies, ", "BB, "]
+    prefixes = [bot.user.name[0:1].lower()+'$', bot.user.name+', ', bot.user.name.lower()+', ', "Ladies, ", "BB, "]
     # Check to see if we are outside of a guild. e.g DM's etc.
     if msg.channel is None:
         return ''
@@ -18,7 +19,7 @@ def get_prefix(bot, msg):
 
 desc = '''Written and Developed by theDerpySage'''
 
-startup_extensions = ['simple', 'server', 'admin']
+startup_extensions = ['simple', 'server', 'admin', 'roles']
 bot = commands.Bot(command_prefix=get_prefix,description=desc)
 
 @bot.event
@@ -49,8 +50,26 @@ async def on_message(message):
         #Makes sure it's not her talking, may be a good idea to delete just to make sure DMs are actually sending...
         if message.author.id != 593202472839938087: 
             #Sends message to the logs channel with the Name, ID, and message from the DM
-            await log_channel.send(message.author.name + "/" + str(message.author.id) + " : " + message.content)
+            await log_channel.send(datetime.now().strftime("%b %d %Y, %I:%M %p") + " : " + message.author.name + "/" + str(message.author.id) + " : " + message.content)
     await bot.process_commands(message)
+
+@bot.event
+async def on_member_join(member):
+    general_channel = bot.get_channel(436004952016551937)
+    log_channel = bot.get_channel(585857730150137876)
+    join_role = "The Boys"
+    guild = member.guild
+    role = discord.utils.get(guild.roles, name=join_role)
+    await member.add_roles(role)
+    await general_channel.send("Welcome " + member.mention + "!")
+    await log_channel.send(datetime.now().strftime("%b %d %Y, %I:%M %p") + " : " + member + " joined")
+
+@bot.event
+async def on_member_remove(member):
+    general_channel = bot.get_channel(436004952016551937)
+    log_channel = bot.get_channel(585857730150137876)
+    await general_channel.send("Seeya, " + member.mention + "!")
+    await log_channel.send(datetime.now().strftime("%b %d %Y, %I:%M %p") + " : " + member + " left")
 
 @bot.event
 async def on_command_error(ctx, error):

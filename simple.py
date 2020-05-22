@@ -26,16 +26,16 @@ class SimpleCog(commands.Cog):
         """Ask a Yes or No Question."""
         if message != None:
             random.seed()
-            intensity = random.randint(0,10)
-            if intensity == 0:
+            intensity = random.randint(1,20)
+            if intensity == 1:
                 await ctx.send("Absolutely not.")
-            elif intensity < 5:
-                await ctx.send("No.")
-            elif intensity == 5:
-                await ctx.send("Maybe.")
             elif intensity < 10:
-                await ctx.send("Yes.")
+                await ctx.send("No.")
             elif intensity == 10:
+                await ctx.send("Maybe.")
+            elif intensity < 20:
+                await ctx.send("Yes.")
+            elif intensity == 20:
                 await ctx.send("Definitely.")
             else: await ctx.send("Go fuck yourself.")
         else: await ctx.send("?")

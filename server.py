@@ -1,11 +1,18 @@
 import discord
 from discord.ext import commands
+import bb_config
 import socket
 from urllib.request import urlopen
 import os
 import subprocess
 from datetime import timedelta
 import asyncio
+
+# Self made check since is_owner() doesnt appear to be working and includes server owner
+# For Myself, Server Owner, and a pre-designated Super Role
+
+def is_super(ctx):
+	return (ctx.message.author.id == bb_config.owner_id) or (ctx.message.author == ctx.message.guild.owner) or (discord.utils.get(ctx.message.author.roles, name=bb_config.super_role) != None)
 
 class ServerCog(commands.Cog):
     '''Server functions'''
@@ -112,14 +119,24 @@ class ServerCog(commands.Cog):
         if bool_ping("kaga.thederpysage.com"):
             kaga = ":white_check_mark:"
         else : kaga = ":no_entry:"
+        if bool_ping("yamashiro.thederpysage.com"):
+            yama = ":white_check_mark:"
+        else : yama = ":no_entry:"
         temp = ("**SERVERS**" +
         "\nAkagi:\t" + akagi +
         "\nKaga:\t" + kaga +
         "\nLaffey:\t" + laffey +
         "\nNagato:\t" + nagato +
         "\nMutsu:\t" + mutsu +
-        "\nFubuki:\t" + fubuki)
+        "\nFubuki:\t" + fubuki +
+        "\nYamashiro:\t" + yama)
         await ctx.send(temp)
+    
+    @commands.command(name="wake", hidden=True)
+    @commands.check(is_super)
+    async def wol(self, ctx, *, mac):
+        subprocess.run(['wakeonlan', mac], stdout=subprocess.DEVNULL)
+        await ctx.send("Wake-on-LAN packet sent to " + mac)
 
 class Reporting(object):
     def __init__(self, bot, channel_id):
@@ -143,7 +160,7 @@ async def monitor(bot):
     '''Reporting for downtime for mission critical servers.'''
     await bot.wait_until_ready()
     reporting = Reporting(bot, 585841199156559892)
-    serverList = ["akagi.thederpysage.com", "kaga.thederpysage.com", "laffey.thederpysage.com", "nagato.thederpysage.com", "mutsu.thederpysage.com"]
+    serverList = ["akagi.thederpysage.com", "kaga.thederpysage.com", "laffey.thederpysage.com", "nagato.thederpysage.com", "mutsu.thederpysage.com", "yamashiro.thederpysage.com"]
     print('Starting Monitoring Task...')
     while True:
         for x in serverList: 
