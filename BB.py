@@ -19,7 +19,7 @@ def get_prefix(bot, msg):
 
 desc = '''Written and Developed by theDerpySage'''
 
-startup_extensions = ['simple', 'server', 'admin', 'roles']
+startup_extensions = ['simple', 'servers', 'admin', 'users', 'sniper']
 bot = commands.Bot(command_prefix=get_prefix,description=desc)
 
 @bot.event
@@ -40,41 +40,42 @@ async def on_ready():
                 print('Failed to load extension ' + extension, file=sys.stderr)
                 traceback.print_exc()
     print('Successfully logged in and booted...!')
+    #Log Channel for her DMs
+    log_channel = bot.get_channel(bb_config.log_chat_id)
+    await log_channel.send("Connected.")
 
 @bot.event
 async def on_message(message):
-    #Log Channel for her DMs
-    log_channel = bot.get_channel(585857730150137876)
+    log_channel = bot.get_channel(bb_config.log_chat_id)
     #Checks if its a DM
     if isinstance(message.channel, discord.abc.PrivateChannel):
         #Makes sure it's not her talking, may be a good idea to delete just to make sure DMs are actually sending...
-        if message.author.id != 593202472839938087: 
-            #Sends message to the logs channel with the Name, ID, and message from the DM
-            await log_channel.send(datetime.now().strftime("%b %d %Y, %I:%M %p") + " : " + message.author.name + "/" + str(message.author.id) + " : " + message.content)
+        if message.author.id != bb_config.client_id: 
+            #Name, ID, and message from the DM
+            temp = message.author.name + " : " + message.content
+            #Post any attachments too
+            for item in message.attachments:
+                temp += '\n' + item.url
+            #Sends it all to the Log Channel
+            await log_channel.send(temp)
     await bot.process_commands(message)
 
 @bot.event
 async def on_member_join(member):
-    general_channel = bot.get_channel(436004952016551937)
-    log_channel = bot.get_channel(585857730150137876)
-    join_role = "The Boys"
-    guild = member.guild
-    role = discord.utils.get(guild.roles, name=join_role)
-    await member.add_roles(role)
-    await general_channel.send("Welcome " + member.mention + "!")
-    await log_channel.send(datetime.now().strftime("%b %d %Y, %I:%M %p") + " : " + member + " joined")
+    log_channel = bot.get_channel(bb_config.log_chat_id)
+    await log_channel.send(member.name + " joined")
 
 @bot.event
 async def on_member_remove(member):
-    general_channel = bot.get_channel(436004952016551937)
-    log_channel = bot.get_channel(585857730150137876)
-    await general_channel.send("Seeya, " + member.mention + "!")
-    await log_channel.send(datetime.now().strftime("%b %d %Y, %I:%M %p") + " : " + member + " left")
+    log_channel = bot.get_channel(bb_config.log_chat_id)
+    await log_channel.send(member.name + " left")
 
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
         await ctx.send("?")
-    raise error
+    elif isinstance(error, commands.errors.CheckFailure):
+        await ctx.send("You have no power here.")
+    else : await ctx.send("`" + str(error) + "`")
 
 bot.run(bb_config.token, reconnect=True)

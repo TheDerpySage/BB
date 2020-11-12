@@ -6,27 +6,30 @@ import aiohttp
 # Self made check since is_owner() doesnt appear to be working and includes server owner
 # For Myself and the Server Owner
 
-SUPER_ROLE = "Good Boy"
 
 def is_super(ctx):
 	return (ctx.message.author.id == bb_config.owner_id) or (ctx.message.author == ctx.message.guild.owner) or (discord.utils.get(ctx.message.author.roles, name=bb_config.super_role) != None)
 
 # Async method to load the bytes of a file and return bytes
-async def downloadBytes(session : aiohttp.ClientSession, url : str):
+
+
+async def downloadBytes(session: aiohttp.ClientSession, url: str):
 	async with session.get(url) as response:
 		assert response.status == 200
 		return await response.read()
+
 
 class AdminCog(commands.Cog):
 	'''Majora/Server Owner Only stuff'''
 
 	def __init__(self, bot):
-		self.bot = bot	
+		self.bot = bot
 
 	@commands.command(name="say", hidden=True)
 	@commands.check(is_super)
 	async def echo(self, ctx, *, message: str):
 		await ctx.send(message)
+		print(message)
 
 	@commands.command(name="exit", hidden=True)
 	@commands.check(is_super)
@@ -69,21 +72,32 @@ class AdminCog(commands.Cog):
 		else:
 			await ctx.send('**`SUCCESS`**')
 
-	#Server Channel Specific
+	# Server Channel Specific
 	@commands.command(name='yell', hidden=True)
 	@commands.check(is_super)
 	async def yell(self, ctx, channel_id, *, message: str):
 		channel = self.bot.get_channel(int(channel_id))
 		await channel.send(message)
 
-	#User Specific
+	# User Specific
 	@commands.command(name='tell', hidden=True)
 	@commands.check(is_super)
-	async def tell(self, ctx, user_id, *, message: str):
-		user = self.bot.get_user(int(user_id))
-		if user.dm_channel == None:
-			await user.create_dm()
-		await user.dm_channel.send(message)
+	async def tell(self, ctx, target, *, message: str):
+		if (target[:1] == "<"):
+            # If an @ Mention is passed
+			user = discord.utils.get(
+			    ctx.message.author.guild.members, id=int(target[3:len(target)-1]))
+		else:
+            # If just a name is passed
+			user = discord.utils.get(ctx.message.author.guild.members, name=target)
+			if(not isinstance(user, discord.abc.User)):
+                # If The name that was passed is the guild-side nickname
+				user = discord.utils.get(ctx.message.author.guild.members, nick=target)
+		if (isinstance(user, discord.abc.User)):
+			if user.dm_channel == None:
+				await user.create_dm()
+			await user.dm_channel.send(message)
+		else : await ctx.send("No such user.")
 
 	@commands.command(name='pfp', hidden=True)
 	@commands.check(is_super)

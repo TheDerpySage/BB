@@ -4,7 +4,7 @@ BB is my latest python discord bot written using Discord.py. She functions pimar
 
 DEPENDENCIES
 =============
-Python 3.7.4
+Python 3.9
 
 pip install discord.py
 
@@ -17,6 +17,6 @@ name before the application will run.
 
 TO-DO
 =============
-Incremental changes at this point.
+Make the Emailer optional.
 
 
