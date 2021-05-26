@@ -1,6 +1,6 @@
 BB
 ===========
-BB is my latest python discord bot written using Discord.py. She functions pimarily as a server monitor for my home network, she includes an automated process for checking the health of certain servers so I may be alerted of downtime. She also runs some administrative tasks on my server.
+BB is my latest python discord bot written using Discord.py. She functions pimarily as a server monitor for my home network, she includes an automated process for checking the health of certain servers so I may be alerted of downtime. She also runs some administrative tasks on my community server.
 
 DEPENDENCIES
 =============
@@ -17,6 +17,6 @@ name before the application will run.
 
 TO-DO
 =============
-Make the Emailer optional.
+Incremental changes at this point.
 
 

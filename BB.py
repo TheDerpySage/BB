@@ -42,7 +42,10 @@ async def on_ready():
     print('Successfully logged in and booted...!')
     #Log Channel for her DMs
     log_channel = bot.get_channel(bb_config.log_chat_id)
-    await log_channel.send("Connected.")
+    if not bb_config.CONNECTED:
+        await log_channel.send("Connected.")
+        bb_config.CONNECTED = True
+    else : await log_channel.send("Connection was dropped, reconnected now.")
 
 @bot.event
 async def on_message(message):

@@ -25,7 +25,7 @@ class AdminCog(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 
-	@commands.command(name="say", hidden=True)
+	@commands.command(name="say", aliases=['echo'], hidden=True)
 	@commands.check(is_super)
 	async def echo(self, ctx, *, message: str):
 		await ctx.send(message)

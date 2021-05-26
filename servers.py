@@ -66,18 +66,19 @@ class Reporting(object):
     async def process(self):
         temp = self.report.copy()
         for x in self.servers: 
-            if bool_ping(x):
-                if x in self.report:
-                    temp.remove(x)
-                    await self.channel.send(":white_check_mark: " + x.split('.')[0] + " is back up.")
+            # x[name, ip]
+            if bool_ping(x[1]):
+                if x[0] in self.report:
+                    temp.remove(x[0])
+                    await self.channel.send(":white_check_mark: " + x[0] + " is back up.")
                 #else still up so no need to repeat
             else : 
-                if x not in self.report:
-                    temp.append(x)
-                    await self.channel.send(":no_entry: " + x.split('.')[0] + " is unresponsive.")
+                if x[0] not in self.report:
+                    temp.append(x[0])
+                    await self.channel.send(":no_entry: " + x[0] + " is unresponsive.")
                 #else still unresponsive so no need to repeat
         for x in self.services:
-            # x[name, hostname, port]
+            # x[name, ip, port]
             if bool_socket(x[1], x[2]):
                 if x[0] in self.report:
                     temp.remove(x[0])
@@ -92,19 +93,21 @@ class Reporting(object):
         # Overwrite the report
         self.report = temp
         # Notify if there's something worth reporting
-        if recovered or died:
-            body = ""
-            if died:
-                body += "The following have stopped responding\n"
-                for x in died:
-                    body += x.split('.')[0] + "\n"
-                body += "\n"
-            if recovered:
-                body += "The following have recovered\n"
-                for x in recovered:
-                    body += x.split('.')[0] + "\n"
-                body += "\n"
-            self.emailer.send_email(bb_config.send_alerts_to, 'Alert!', body)
+        if bb_config.send_alerts_to != '':
+            if recovered or died:
+                body = ""
+                if died:
+                    body += "The following have stopped responding\n"
+                    for x in died:
+                        body += x.split('.')[0] + "\n"
+                    body += "\n"
+                if recovered:
+                    body += "The following have recovered\n"
+                    for x in recovered:
+                        body += x.split('.')[0] + "\n"
+                    body += "\n"
+                body += "Please login and check running services."
+                self.emailer.send_email(bb_config.send_alerts_to, 'Alert!', body)
 
 
 # Cog Proper
@@ -142,7 +145,7 @@ class ServerCog(commands.Cog):
         """Service Status"""
         await ctx.trigger_typing()
         #Check Nginx
-        result = socket_test('laffey.thederpysage.com',80)
+        result = socket_test('192.168.1.6',80)
         if result == 0:
             toadHealth = ":white_check_mark:"
             public = True
@@ -150,14 +153,14 @@ class ServerCog(commands.Cog):
             toadHealth = ":no_entry:(%s)" % result
             public = False
         #Check Web .com
-        result = socket_test('mutsu.thederpysage.com',80)
+        result = socket_test('192.168.1.7',80)
         if result == 0:
             webHealth = ":white_check_mark:"
             if public == False:
                 webHealth = ":warning: NO PUBLIC ACCESS"
         else: webHealth = ":no_entry:(%s)" % result
         #Check NAS
-        result = socket_test('kaga.thederpysage.com',445)
+        result = socket_test('192.168.1.4',445)
         if result == 0:
             nasHealth = ":white_check_mark:"
             files = True
@@ -165,19 +168,14 @@ class ServerCog(commands.Cog):
             nasHealth = ":no_entry:(%s)" % result
             files = False
         #Check Web .moe
-        result = socket_test('fubuki.thederpysage.com',80)
+        result = socket_test('192.168.1.9',80)
         if result == 0:
             moeHealth = ":white_check_mark:"
             if public == False:
                 moeHealth = ":warning: NO PUBLIC ACCESS"
         else: moeHealth = ":no_entry:(%s)" % result
-        #Check Minecraft
-        result = socket_test('fubuki.thederpysage.com',25565)
-        if result == 0:
-            mineHealth = ":white_check_mark:"
-        else: mineHealth = ":no_entry:(%s)" % result
         #Check Plex
-        result = socket_test('nagato.thederpysage.com',32400)
+        result = socket_test('192.168.1.2',32400)
         if result == 0:
             plexHealth = ":white_check_mark:"
             if files == False:
@@ -186,12 +184,12 @@ class ServerCog(commands.Cog):
                 plexHealth = ":warning: NO PUBLIC ACCESS; Use https://app.plex.tv/"
         else: plexHealth = ":no_entry:(%s)" % result
         #webmail
-        result = socket_test('portland.thederpysage.com',443)
+        result = socket_test('192.168.1.12',443)
         if result == 0:
             roundHealth = ":white_check_mark:"
         else: roundHealth = ":no_entry:(%s)" % result
         #Postfix
-        result = socket_test('portland.thederpysage.com',587)
+        result = socket_test('192.168.1.12',587)
         if result == 0:
             postHealth = ":white_check_mark:"
         else: postHealth = ":no_entry:(%s)" % result
@@ -201,7 +199,6 @@ class ServerCog(commands.Cog):
         "\n\n~com Website~ " + "\nStatus:\t" + webHealth + "\nhttp://www.thederpysage.com/" +
         "\n\n~NAS~ " + "\nStatus:\t" + nasHealth + "\n*File Server*" +
         "\n\n~moe Website~ " + "\nStatus:\t" + moeHealth + "\nhttp://www.thederpysage.moe/" +
-        "\n\n~Minecraft~ " + "\nStatus:\t" + mineHealth + "\nminecraft.thederpysage.moe" +
         "\n\n~Plex~" + "\nStatus:\t" + plexHealth + "\nhttp://plex.thederpysage.moe/" + 
         "\n\n~E-MAIL~" + "\nPostfix:\t" + postHealth + "\nWebmail:\t" + roundHealth + "\nhttps://portland.thederpysage.com")
         await ctx.send(temp)
@@ -210,47 +207,39 @@ class ServerCog(commands.Cog):
     async def servers(self, ctx):
         """Server Status"""
         await ctx.trigger_typing()
-        if bool_ping("nagato.thederpysage.com"):
+        if bool_ping("192.168.1.2"):
             nagato = ":white_check_mark:"
         else : nagato = ":no_entry:"
-        if bool_ping("akagi.thederpysage.com"):
+        if bool_ping("192.168.1.3"):
             akagi = ":white_check_mark:"
         else : akagi = ":no_entry:"
-        if bool_ping("laffey.thederpysage.com"):
+        if bool_ping("192.168.1.6"):
             laffey = ":white_check_mark:"
         else : laffey = ":no_entry:"
-        if bool_ping("mutsu.thederpysage.com"):
+        if bool_ping("192.168.1.7"):
             mutsu = ":white_check_mark:"
         else : mutsu = ":no_entry:"
-        if bool_ping("fubuki.thederpysage.com"):
-            fubuki = ":white_check_mark:"
-        else : fubuki = ":no_entry:"
-        if bool_ping("kaga.thederpysage.com"):
+        if bool_ping("192.168.1.4"):
             kaga = ":white_check_mark:"
         else : kaga = ":no_entry:"
-        if bool_ping("unicorn.thederpysage.com"):
+        if bool_ping("192.168.1.13"):
             uni = ":white_check_mark:"
         else : uni = ":no_entry:"
-        if bool_ping("yamashiro.thederpysage.com"):
+        if bool_ping("192.168.1.15"):
             yama = ":white_check_mark:"
         else : yama = ":no_entry:"
-        if bool_ping("portland.thederpysage.com"):
+        if bool_ping("192.168.1.12"):
             port = ":white_check_mark:"
         else : port = ":no_entry:"
-        if bool_ping("ark-royal.thederpysage.com"):
-            ark = ":white_check_mark:"
-        else : ark = ":no_entry:"
         temp = ("**SERVERS**" +
         "\nAkagi:\t" + akagi +
         "\nKaga:\t" + kaga +
         "\nLaffey:\t" + laffey +
         "\nNagato:\t" + nagato +
         "\nMutsu:\t" + mutsu +
-        "\nFubuki:\t" + fubuki +
         "\nUnicorn:\t" + uni + 
         "\nYamashiro:\t" + yama +
-        "\nPortland:\t" + port +
-        "\nArk-Royal:\t" + ark)
+        "\nPortland:\t" + port)
         await ctx.send(temp)
     
     @commands.command(name="wake", hidden=True)
@@ -268,7 +257,7 @@ class ServerCog(commands.Cog):
         s.send(bytes("EXIT","utf-8"))
         s.close()
 
-    @tasks.loop(seconds=600)
+    @tasks.loop(seconds=120.0)
     async def monitor(self):
         '''Reporting for downtime for mission critical servers.'''
         await self.bot.wait_until_ready()
