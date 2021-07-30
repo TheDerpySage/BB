@@ -263,14 +263,16 @@ class ServerCog(commands.Cog):
         await self.bot.wait_until_ready()
         await self.reporting.process()
 
-    @commands.command(name="process", hidden=True)
+    @commands.command(name="process")
     @commands.check(is_super)
     async def force_process(self, ctx):
+        """Force an update"""
         await ctx.send("OK.")
         await self.reporting.process()
 
     @commands.command(name="broken")
     async def whats_broken(self, ctx):
+        """Report whats dead"""
         if self.reporting.report:
             temp = "Here's what's dead...\n```\n"
             for x in self.reporting.report:

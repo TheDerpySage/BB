@@ -59,6 +59,24 @@ class UsersCog(commands.Cog):
                 await ctx.send("I don't have permission to mess with roles!")
 
     @commands.command(pass_context=True)
+    async def anime(self, ctx):
+        """Grant yourself the Anime Club role"""
+        anime_role = "Anime Club"
+        role = discord.utils.get(ctx.message.author.guild.roles, name=anime_role)
+        if (discord.utils.get(ctx.message.author.roles, name=anime_role) == None):
+            try:
+                await ctx.message.author.add_roles(role)
+                await ctx.send("Welcome to Anime Club, " + ctx.message.author.name + ".")
+            except discord.Forbidden:
+                await ctx.send("I don't have permission to mess with roles!")
+        else:
+            try:
+                await ctx.message.author.remove_roles(role)
+                await ctx.send("No more Anime Club for " + ctx.message.author.name + ".")
+            except discord.Forbidden:
+                await ctx.send("I don't have permission to mess with roles!")
+
+    @commands.command(pass_context=True)
     @commands.check(is_super)
     async def jail(self, ctx, *, target = None):
         """Grant other people the GBJ Role"""
