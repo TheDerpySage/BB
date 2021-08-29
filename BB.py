@@ -20,7 +20,8 @@ def get_prefix(bot, msg):
 desc = '''Written and Developed by theDerpySage'''
 
 startup_extensions = ['simple', 'servers', 'admin', 'users', 'sniper']
-bot = commands.Bot(command_prefix=get_prefix,description=desc)
+intents = discord.Intents.all()
+bot = commands.Bot(command_prefix=get_prefix,description=desc,intents=intents)
 
 @bot.event
 async def on_ready():
@@ -62,16 +63,6 @@ async def on_message(message):
             #Sends it all to the Log Channel
             await log_channel.send(temp)
     await bot.process_commands(message)
-
-@bot.event
-async def on_member_join(member):
-    log_channel = bot.get_channel(bb_config.log_chat_id)
-    await log_channel.send(member.name + " joined")
-
-@bot.event
-async def on_member_remove(member):
-    log_channel = bot.get_channel(bb_config.log_chat_id)
-    await log_channel.send(member.name + " left")
 
 @bot.event
 async def on_command_error(ctx, error):

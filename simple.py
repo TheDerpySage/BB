@@ -21,7 +21,7 @@ class SimpleCog(commands.Cog):
             await ctx.send("?")
         else: await ctx.send(random.choice(choices))
 
-    @commands.command(aliases=['is', 'are', 'am', 'does', 'will', 'can', 'do', 'could', 'did', 'should', 'would'])
+    @commands.command(aliases=['is', 'are', 'am', 'does', 'will', 'can', 'do', 'could', 'did', 'should', 'would', 'was'])
     async def ask(self, ctx, *, message: str = None ):
         """Ask a Yes or No Question."""
         if message != None:

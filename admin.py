@@ -5,19 +5,31 @@ import aiohttp
 
 # Self made check since is_owner() doesnt appear to be working and includes server owner
 # For Myself and the Server Owner
-
-
 def is_super(ctx):
 	return (ctx.message.author.id == bb_config.owner_id) or (ctx.message.author == ctx.message.guild.owner) or (discord.utils.get(ctx.message.author.roles, name=bb_config.super_role) != None)
 
 # Async method to load the bytes of a file and return bytes
-
-
 async def downloadBytes(session: aiohttp.ClientSession, url: str):
 	async with session.get(url) as response:
 		assert response.status == 200
 		return await response.read()
 
+# Helper Method to search for a user
+def search_user(bot, who):
+    try:
+        # If Mention or ID is passed (approach the substring from the right, since it can include !@ or just @)
+        if (who[:1] == "<"):
+            x = bot.get_user(int(who[-19:-1]))
+            return x
+        else :
+            x = bot.get_user(int(who))
+            return x
+    except:
+        # If Name or Nick is passed
+        for x in bot.get_all_members():
+            if (x.name == who) or (x.nick == who):
+                return x
+        return None
 
 class AdminCog(commands.Cog):
 	'''Majora/Server Owner Only stuff'''
@@ -79,25 +91,14 @@ class AdminCog(commands.Cog):
 		channel = self.bot.get_channel(int(channel_id))
 		await channel.send(message)
 
-	# User Specific
+	#User Specific
 	@commands.command(name='tell', hidden=True)
 	@commands.check(is_super)
-	async def tell(self, ctx, target, *, message: str):
-		if (target[:1] == "<"):
-            # If an @ Mention is passed
-			user = discord.utils.get(
-			    ctx.message.author.guild.members, id=int(target[3:len(target)-1]))
-		else:
-            # If just a name is passed
-			user = discord.utils.get(ctx.message.author.guild.members, name=target)
-			if(not isinstance(user, discord.abc.User)):
-                # If The name that was passed is the guild-side nickname
-				user = discord.utils.get(ctx.message.author.guild.members, nick=target)
-		if (isinstance(user, discord.abc.User)):
-			if user.dm_channel == None:
-				await user.create_dm()
-			await user.dm_channel.send(message)
-		else : await ctx.send("No such user.")
+	async def tell(self, ctx, who, *, message: str):
+		user = search_user(self.bot, who)
+		if user.dm_channel == None:
+			await user.create_dm()
+		await user.dm_channel.send(message)
 
 	@commands.command(name='pfp', hidden=True)
 	@commands.check(is_super)
