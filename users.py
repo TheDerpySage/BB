@@ -31,14 +31,14 @@ class UsersCog(commands.Cog):
     @commands.Cog.listener()
     async def on_member_remove(self, member):
         general_channel = self.bot.get_channel(bb_config.general_chat_id)
-        log_channel = bot.get_channel(bb_config.log_chat_id)
+        log_channel = self.bot.get_channel(bb_config.log_chat_id)
         await log_channel.send(member.name + " left")
         await general_channel.send("Seeya, " + member.mention + "!")
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
         general_channel = self.bot.get_channel(bb_config.general_chat_id)
-        log_channel = bot.get_channel(bb_config.log_chat_id)
+        log_channel = self.bot.get_channel(bb_config.log_chat_id)
         await log_channel.send(member.name + " joined")
         await member.add_roles(discord.utils.get(member.guild.roles, name="The Boys"))
         await general_channel.send("Welcome " + member.mention + "!")
