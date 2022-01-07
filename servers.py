@@ -116,9 +116,10 @@ class ServerCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.reporting = Reporting(self.bot, bb_config.reporting_chat_id, bb_config.serverList, bb_config.serviceList)
-        print('Starting Monitoring Task...')
-        self.monitor.start()
+        if bb_config.reporting:
+            self.reporting = Reporting(self.bot, bb_config.reporting_chat_id, bb_config.serverList, bb_config.serviceList)
+            print('Starting Monitoring Task...')
+            self.monitor.start()
 
     @commands.command(aliases=['ip'])
     async def current_ip(self, ctx):

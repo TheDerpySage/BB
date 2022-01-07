@@ -8,6 +8,7 @@ owner_id = 0
 super_role = ""
 mod_role = ""
 # REPORTING
+reporting = False
 serverList = []
 serviceList = []
 # EMAILER
@@ -15,3 +16,5 @@ send_alerts_to = ''
 host = ''
 username = ''
 password = ''
+# A GLOBAL I NEED
+CONNECTED = False
