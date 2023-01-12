@@ -12,12 +12,12 @@ class SniperCog(commands.Cog):
     @commands.Cog.listener()
     async def on_message_delete(self, message):
         self.log[message.channel] = message.author.name + ": " + message.content
-    
+
     @commands.command(pass_context=True)
     async def snipe(self, ctx):
         if(ctx.channel in self.log):
             await ctx.send(self.log[ctx.channel])
         else : await ctx.send("Nothing to snipe...")
 
-def setup(bot):
-    bot.add_cog(SniperCog(bot))
+async def setup(bot):
+    await bot.add_cog(SniperCog(bot))

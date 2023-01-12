@@ -55,7 +55,7 @@ class AdminCog(commands.Cog):
 	async def extension_load(self, ctx, *, cog: str):
 		"""Command which Loads a Module. Remember to use dot path. e.g: cogs.owner"""
 		try:
-			self.bot.load_extension(cog)
+			await self.bot.load_extension(cog)
 		except Exception as e:
 			await ctx.send('**`ERROR: %s`**' % e)
 		else:
@@ -66,7 +66,7 @@ class AdminCog(commands.Cog):
 	async def extension_unload(self, ctx, *, cog: str):
 		"""Command which Unloads a Module. Remember to use dot path. e.g: cogs.owner"""
 		try:
-			self.bot.unload_extension(cog)
+			await self.bot.unload_extension(cog)
 		except Exception as e:
 			await ctx.send('**`ERROR: %s`**' % e)
 		else:
@@ -77,8 +77,8 @@ class AdminCog(commands.Cog):
 	async def extension_reload(self, ctx, *, cog: str):
 		"""Command which Reloads a Module. Remember to use dot path. e.g: cogs.owner"""
 		try:
-			self.bot.unload_extension(cog)
-			self.bot.load_extension(cog)
+			await self.bot.unload_extension(cog)
+			await self.bot.load_extension(cog)
 		except Exception as e:
 			await ctx.send('**`ERROR: %s`**' % e)
 		else:
@@ -129,5 +129,5 @@ class AdminCog(commands.Cog):
 		'''Show credits.'''
 		await ctx.send("`BB created by TheDerpySage.\nHosted on vinny.thederpysage.com.\nQuestions/Concerns? Contact via Discord.\n@TheDerpySage#2049`")
 
-def setup(bot):
-	bot.add_cog(AdminCog(bot))
+async def setup(bot):
+	await bot.add_cog(AdminCog(bot))

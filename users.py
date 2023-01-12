@@ -132,5 +132,5 @@ class UsersCog(commands.Cog):
             await ctx.send(user.avatar_url)
         else : await ctx.send("No such user.")
 
-def setup(bot):
-    bot.add_cog(UsersCog(bot))
+async def setup(bot):
+    await bot.add_cog(UsersCog(bot))

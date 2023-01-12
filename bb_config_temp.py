@@ -11,6 +11,7 @@ mod_role = ""
 reporting = False
 serverList = []
 serviceList = []
+checkInterval = 120
 # EMAILER
 send_alerts_to = ''
 host = ''

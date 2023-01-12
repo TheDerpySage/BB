@@ -64,5 +64,5 @@ class SimpleCog(commands.Cog):
     async def trash_talk(self, ctx, *, message: str = None ):
         await ctx.send("The test results came back from the hospital.\nYou are a stage five dumbass.")
 
-def setup(bot):
-    bot.add_cog(SimpleCog(bot))
+async def setup(bot):
+    await bot.add_cog(SimpleCog(bot))

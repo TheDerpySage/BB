@@ -19,7 +19,7 @@ def get_prefix(bot, msg):
 
 desc = '''Written and Developed by theDerpySage'''
 
-startup_extensions = ['simple', 'servers', 'admin', 'users', 'sniper']
+startup_extensions = ['simple', 'admin', 'users', 'sniper']
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix=get_prefix,description=desc,intents=intents)
 
@@ -30,13 +30,10 @@ async def on_ready():
     print(bot.user.id)
     print('------')
     await bot.change_presence(activity=discord.Game(name='Use '+bot.user.name[0:1].lower()+'$help'))
-    # In order to edit her appearence, new parameters can be entered here.
-    #fp = open("assets/pfp4.png", "rb")
-    #await bot.user.edit(password=None, username="BB", avatar=fp.read())
     if __name__ == '__main__':
         for extension in startup_extensions:
             try:
-                bot.load_extension(extension)
+                await bot.load_extension(extension)
             except:
                 print('Failed to load extension ' + extension, file=sys.stderr)
                 traceback.print_exc()

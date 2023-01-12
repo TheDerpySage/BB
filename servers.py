@@ -63,6 +63,7 @@ class Reporting(object):
         #the channel we send notifications to
         self.channel = bot.get_channel(channel_id)
         self.emailer = Emailer(bb_config.host, bb_config.username, bb_config.password)
+
     async def process(self):
         temp = self.report.copy()
         for x in self.servers: 
@@ -121,6 +122,9 @@ class ServerCog(commands.Cog):
             print('Starting Monitoring Task...')
             self.monitor.start()
 
+    def cog_unload(self):
+        self.monitor.cancel()
+
     @commands.command(aliases=['ip'])
     async def current_ip(self, ctx):
         """Returns Current Public IP"""
@@ -144,103 +148,23 @@ class ServerCog(commands.Cog):
     @commands.command()
     async def services(self, ctx):
         """Service Status"""
-        await ctx.trigger_typing()
-        #Check Nginx
-        result = socket_test('192.168.1.6',80)
-        if result == 0:
-            toadHealth = ":white_check_mark:"
-            public = True
-        else:
-            toadHealth = ":no_entry:(%s)" % result
-            public = False
-        #Check Web .com
-        result = socket_test('192.168.1.7',80)
-        if result == 0:
-            webHealth = ":white_check_mark:"
-            if public == False:
-                webHealth = ":warning: NO PUBLIC ACCESS"
-        else: webHealth = ":no_entry:(%s)" % result
-        #Check NAS
-        result = socket_test('192.168.1.4',445)
-        if result == 0:
-            nasHealth = ":white_check_mark:"
-            files = True
-        else: 
-            nasHealth = ":no_entry:(%s)" % result
-            files = False
-        #Check Web .moe
-        result = socket_test('192.168.1.9',80)
-        if result == 0:
-            moeHealth = ":white_check_mark:"
-            if public == False:
-                moeHealth = ":warning: NO PUBLIC ACCESS"
-        else: moeHealth = ":no_entry:(%s)" % result
-        #Check Plex
-        result = socket_test('192.168.1.2',32400)
-        if result == 0:
-            plexHealth = ":white_check_mark:"
-            if files == False:
-                plexHealth = ":warning: NO FILES"
-            elif public == False: 
-                plexHealth = ":warning: NO PUBLIC ACCESS; Use https://app.plex.tv/"
-        else: plexHealth = ":no_entry:(%s)" % result
-        #webmail
-        result = socket_test('192.168.1.12',443)
-        if result == 0:
-            roundHealth = ":white_check_mark:"
-        else: roundHealth = ":no_entry:(%s)" % result
-        #Postfix
-        result = socket_test('192.168.1.12',587)
-        if result == 0:
-            postHealth = ":white_check_mark:"
-        else: postHealth = ":no_entry:(%s)" % result
-        #Output
-        temp = ("**SERVICES**" +
-        "\n\n~Nginx~" + "\nStatus:\t" + toadHealth + "\n*Reverse Proxy*" +
-        "\n\n~com Website~ " + "\nStatus:\t" + webHealth + "\nhttp://www.thederpysage.com/" +
-        "\n\n~NAS~ " + "\nStatus:\t" + nasHealth + "\n*File Server*" +
-        "\n\n~moe Website~ " + "\nStatus:\t" + moeHealth + "\nhttp://www.thederpysage.moe/" +
-        "\n\n~Plex~" + "\nStatus:\t" + plexHealth + "\nhttp://plex.thederpysage.moe/" + 
-        "\n\n~E-MAIL~" + "\nPostfix:\t" + postHealth + "\nWebmail:\t" + roundHealth + "\nhttps://portland.thederpysage.com")
+        await ctx.typing()
+        temp = "--**SERVICES**--\n"
+        for x in bb_config.serviceList:
+            if bool_socket(x[1], x[2]):
+                temp += x[0] + ": :white_check_mark:\n"
+            else : temp += x[0] + ": :no_entry:\n"
         await ctx.send(temp)
 
     @commands.command()
     async def servers(self, ctx):
         """Server Status"""
-        await ctx.trigger_typing()
-        if bool_ping("192.168.1.2"):
-            nagato = ":white_check_mark:"
-        else : nagato = ":no_entry:"
-        if bool_ping("192.168.1.3"):
-            akagi = ":white_check_mark:"
-        else : akagi = ":no_entry:"
-        if bool_ping("192.168.1.6"):
-            laffey = ":white_check_mark:"
-        else : laffey = ":no_entry:"
-        if bool_ping("192.168.1.7"):
-            mutsu = ":white_check_mark:"
-        else : mutsu = ":no_entry:"
-        if bool_ping("192.168.1.4"):
-            kaga = ":white_check_mark:"
-        else : kaga = ":no_entry:"
-        if bool_ping("192.168.1.13"):
-            uni = ":white_check_mark:"
-        else : uni = ":no_entry:"
-        if bool_ping("192.168.1.15"):
-            yama = ":white_check_mark:"
-        else : yama = ":no_entry:"
-        if bool_ping("192.168.1.12"):
-            port = ":white_check_mark:"
-        else : port = ":no_entry:"
-        temp = ("**SERVERS**" +
-        "\nAkagi:\t" + akagi +
-        "\nKaga:\t" + kaga +
-        "\nLaffey:\t" + laffey +
-        "\nNagato:\t" + nagato +
-        "\nMutsu:\t" + mutsu +
-        "\nUnicorn:\t" + uni + 
-        "\nYamashiro:\t" + yama +
-        "\nPortland:\t" + port)
+        await ctx.typing()
+        temp = "--**SERVERS**--\n"
+        for x in bb_config.serverList:
+            if bool_ping(x[1]):
+                temp += x[0] + ": :white_check_mark:\n"
+            else : temp += x[0] + ": :no_entry:\n"
         await ctx.send(temp)
     
     @commands.command(name="wake", hidden=True)
@@ -258,18 +182,21 @@ class ServerCog(commands.Cog):
         s.send(bytes("EXIT","utf-8"))
         s.close()
 
-    @tasks.loop(seconds=120.0)
+    @tasks.loop(seconds=bb_config.checkInterval)
     async def monitor(self):
         '''Reporting for downtime for mission critical servers.'''
         await self.bot.wait_until_ready()
-        await self.reporting.process()
+        if bb_config.reporting:
+            await self.reporting.process()
 
     @commands.command(name="process")
     @commands.check(is_super)
     async def force_process(self, ctx):
         """Force an update"""
-        await ctx.send("OK.")
-        await self.reporting.process()
+        if bb_config.reporting:
+            await ctx.send("OK, checking...")
+            await self.reporting.process()
+        else : await ctx.send("Monitoring not enabled.")
 
     @commands.command(name="broken")
     async def whats_broken(self, ctx):
@@ -283,5 +210,5 @@ class ServerCog(commands.Cog):
         else: await ctx.send("Report is empty.")
 
 
-def setup(bot):
-    bot.add_cog(ServerCog(bot))
+async def setup(bot):
+    await bot.add_cog(ServerCog(bot))
