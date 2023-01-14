@@ -18,10 +18,10 @@ def ping(host):
     #OS Neutral Ping
     assert (os.name == 'posix' or os.name == 'nt'), "Unrecognized os.name"
     if os.name == 'posix':
-        result = subprocess.run(['ping', '-c', '1', '-W', '2', host], stdout=subprocess.DEVNULL)
+        result = subprocess.run(['ping', '-c', '1', '-W', '3', host], stdout=subprocess.DEVNULL)
         return result.returncode
     elif os.name == 'nt':
-        result = subprocess.run(['ping', '/r', '1', '/w', '2', host], stdout=subprocess.DEVNULL)
+        result = subprocess.run(['ping', '/r', '1', '/w', '3', host], stdout=subprocess.DEVNULL)
         return result.returncode
 
 def string_ping(host):
@@ -68,7 +68,11 @@ class Reporting(object):
         temp = self.report.copy()
         for x in self.servers: 
             # x[name, ip]
-            if bool_ping(x[1]):
+            res = bool_ping(x[1])
+            if not res and bb_config.retryInterval > 0:
+                asyncio.sleep(bb_config.retryInterval)
+                res = bool_ping(x[1])
+            if res:
                 if x[0] in self.report:
                     temp.remove(x[0])
                     await self.channel.send(":white_check_mark: " + x[0] + " is back up.")
@@ -80,7 +84,11 @@ class Reporting(object):
                 #else still unresponsive so no need to repeat
         for x in self.services:
             # x[name, ip, port]
-            if bool_socket(x[1], x[2]):
+            res = bool_socket(x[1], x[2])
+            if not res and bb_config.retryInterval > 0:
+                asyncio.sleep(bb_config.retryInterval)
+                res = bool_socket(x[1], x[2])
+            if res:
                 if x[0] in self.report:
                     temp.remove(x[0])
                     await self.channel.send(":white_check_mark: " + x[0] + " is back up.")
@@ -198,7 +206,7 @@ class ServerCog(commands.Cog):
             await self.reporting.process()
         else : await ctx.send("Monitoring not enabled.")
 
-    @commands.command(name="broken")
+    @commands.command(name="broken", aliases=["report"])
     async def whats_broken(self, ctx):
         """Report whats dead"""
         if self.reporting.report:

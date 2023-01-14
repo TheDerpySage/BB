@@ -12,6 +12,7 @@ reporting = False
 serverList = []
 serviceList = []
 checkInterval = 120
+retryInterval = 5
 # EMAILER
 send_alerts_to = ''
 host = ''
