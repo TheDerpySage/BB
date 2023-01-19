@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 import bb_config
-import aiohttp
+import aiohttp, asyncio
 
 # Self made check since is_owner() doesnt appear to be working and includes server owner
 # For Myself and the Server Owner
@@ -91,7 +91,7 @@ class AdminCog(commands.Cog):
 		channel = self.bot.get_channel(int(channel_id))
 		await channel.send(message)
 
-	#User Specific
+	# User Specific
 	@commands.command(name='tell', hidden=True)
 	@commands.check(is_super)
 	async def tell(self, ctx, who, *, message: str):
@@ -100,6 +100,20 @@ class AdminCog(commands.Cog):
 			await user.create_dm()
 		await user.dm_channel.send(message)
 
+	@commands.command(aliases=['remove', 'delete'], hidden=True)
+	@commands.check(is_super)
+	async def purge(self, ctx, num : int):
+		if not num > 30:
+			messages = [message async for message in ctx.history(limit=num+1)]
+			await ctx.channel.delete_messages(messages)
+			done_message = await ctx.send("Purged %s messages..." % num)
+			await asyncio.sleep(7)
+			await done_message.delete()
+		else : 
+			done_message = await ctx.send("Will not exceed 30")
+			await asyncio.sleep(7)
+			await done_message.delete()
+		
 	@commands.command(name='pfp', hidden=True)
 	@commands.check(is_super)
 	async def update_profile_picture(self, ctx):

@@ -70,7 +70,7 @@ class Reporting(object):
             # x[name, ip]
             res = bool_ping(x[1])
             if not res and bb_config.retryInterval > 0:
-                asyncio.sleep(bb_config.retryInterval)
+                await asyncio.sleep(bb_config.retryInterval)
                 res = bool_ping(x[1])
             if res:
                 if x[0] in self.report:
@@ -86,7 +86,7 @@ class Reporting(object):
             # x[name, ip, port]
             res = bool_socket(x[1], x[2])
             if not res and bb_config.retryInterval > 0:
-                asyncio.sleep(bb_config.retryInterval)
+                await asyncio.sleep(bb_config.retryInterval)
                 res = bool_socket(x[1], x[2])
             if res:
                 if x[0] in self.report:

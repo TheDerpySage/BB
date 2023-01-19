@@ -1,6 +1,7 @@
 # https://discordapp.com/oauth2/authorize?client_id=CLIENT_ID&scope=bot&permissions=0
 client_id = 0
 token = ""
+server_id = 0
 general_chat_id = 0
 reporting_chat_id = 0
 log_chat_id = 0
@@ -18,5 +19,7 @@ send_alerts_to = ''
 host = ''
 username = ''
 password = ''
+#VIRUSTOTAL
+vt_api_key = ''
 # A GLOBAL I NEED
 CONNECTED = False

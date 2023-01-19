@@ -19,7 +19,7 @@ def get_prefix(bot, msg):
 
 desc = '''Written and Developed by theDerpySage'''
 
-startup_extensions = ['simple', 'admin', 'users', 'sniper']
+startup_extensions = ['simple', 'admin', 'users', 'sniper', 'track', 'virustotal']
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix=get_prefix,description=desc,intents=intents)
 
