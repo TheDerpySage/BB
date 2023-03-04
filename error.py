@@ -11,7 +11,7 @@ class ErrorCog(commands.Cog):
     async def trip(self, ctx):
         '''Cause a fucking error I guess'''
         someshit = 1 + "2"
-        print("Does it please you to hurt me dad")
+        await ctx.send("Does it please you to hurt me dad")
 
-def setup(bot):
-    bot.add_cog(ErrorCog(bot))
+async def setup(bot):
+    await bot.add_cog(ErrorCog(bot))

@@ -31,7 +31,7 @@ class TrackCog(commands.Cog):
 
     @commands.command(hidden=True)
     @commands.check(is_super)
-    async def who(self, ctx):
+    async def tracked(self, ctx):
         """Whom are you tracking"""
         if self.member != 0:
             await ctx.send(self.member.display_name)

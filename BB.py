@@ -19,7 +19,7 @@ def get_prefix(bot, msg):
 
 desc = '''Written and Developed by theDerpySage'''
 
-startup_extensions = ['simple', 'admin', 'users', 'sniper', 'track', 'virustotal']
+startup_extensions = ['simple', 'admin', 'users', 'sniper', 'track', 'virustotal', 'davinci']
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix=get_prefix,description=desc,intents=intents)
 
@@ -64,7 +64,7 @@ async def on_message(message):
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
-        await ctx.send("?")
+        pass
     elif isinstance(error, commands.errors.CheckFailure):
         await ctx.send("You have no power here.")
     else : await ctx.send("`" + str(error) + "`")

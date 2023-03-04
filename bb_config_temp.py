@@ -19,7 +19,13 @@ send_alerts_to = ''
 host = ''
 username = ''
 password = ''
-#VIRUSTOTAL
+# VIRUSTOTAL
 vt_api_key = ''
-# A GLOBAL I NEED
+# OPENAI
+openai_key = ""
+openai_name = ""
+davinci_personality = "I am" + openai_name + "\n\n"
+turbo_personality = "You are" + openai_name + ""
+openai_auto_chance = 0.05
+# OTHER
 CONNECTED = False
