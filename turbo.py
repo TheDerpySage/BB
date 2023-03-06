@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import bb_config
 import openai, random, json
+from collections import defaultdict
 
 openai.api_key = bb_config.openai_key
 
@@ -9,7 +10,7 @@ openai.api_key = bb_config.openai_key
 def is_super(ctx):
 	return (ctx.message.author.id == bb_config.owner_id) or (ctx.message.author == ctx.message.guild.owner) or (discord.utils.get(ctx.message.author.roles, name=bb_config.super_role) != None)
 
-class ChatGPTCog(commands.Cog):
+class TurboCog(commands.Cog):
     '''
     ChatGPT Support
     Overrides CommandNotFound and sends your message to gpt-3.5-turbo
@@ -18,7 +19,8 @@ class ChatGPTCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.chance = bb_config.openai_auto_chance
-        self.context = {} # {user.display_name : messages[]}
+        self.context = defaultdict(list)
+        self.max_context = bb_config.openai_max_context
         self.prompt_lead_in = bb_config.turbo_personality
         self.last_response = ""
 
@@ -27,18 +29,21 @@ class ChatGPTCog(commands.Cog):
         '''Main function for openai responses'''
         if isinstance(error, commands.CommandNotFound):
             await ctx.typing()
+            self.context[ctx.message.author.name].append(ctx.message.author.display_name + ": " + ctx.message.content)
             messages = [{"role": "system", "content": self.prompt_lead_in}]
-            messages.append({"role": "assistant", "content": self.last_response})
-            messages.append({"role": "user", "content": ctx.message.author.display_name + ": " + ctx.message.content})
+            for item in self.context[ctx.message.author.name]:
+                if item[:len(bb_config.openai_name + ": ")] == bb_config.openai_name + ": ":
+                    messages.append({"role": "assistant", "content": item})
+                else: messages.append({"role": "user", "content": item})
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=messages
             )
-            if response.choices[0].message.content[:3] == "BB:": 
-                tmp = response.choices[0].message.content[3:] 
+            if response.choices[0].message.content[:len(bb_config.openai_name + ": ")] == bb_config.openai_name + ": ": 
+                tmp = response.choices[0].message.content[len(bb_config.openai_name + ": "):] 
             else : tmp = response.choices[0].message.content 
-            self.last_response = tmp
             await ctx.send(tmp)
+            self.context[ctx.message.author.name].append(bb_config.openai_name + ": " + tmp)
 
     @commands.Cog.listener("on_message")
     async def chatgpt_on_message(self, message):
@@ -50,8 +55,11 @@ class ChatGPTCog(commands.Cog):
             if self.chance >= roll:
                 await general.typing()
                 messages = [{"role": "system", "content": self.prompt_lead_in}]
-                messages.append({"role": "assistant", "content": self.last_response})
-                messages.append({"role": "user", "content": message.author.display_name + ": " + message.content})
+                chat = [message async for message in general.history(limit=self.max_context)]
+                for message in chat:
+                    if message.author.display_name == bb_config.openai_name:
+                        messages.append({"role": "assistant", "content": message.author.display_name + ": " + message.content})
+                    else: messages.append({"role": "user", "content": message.author.display_name + ": " + message.content})
                 response = openai.ChatCompletion.create(
                     model="gpt-3.5-turbo",
                     messages=messages
@@ -59,16 +67,42 @@ class ChatGPTCog(commands.Cog):
                 if response.choices[0].message.content[:4] == "BB: ": 
                     tmp = response.choices[0].message.content[4:] 
                 else : tmp = response.choices[0].message.content 
-
                 self.last_response = tmp
                 await general.send(tmp)
 
     @commands.command(pass_context=True)
     @commands.check(is_super)
+    async def prompt(self, ctx, *, prompt):
+        await ctx.typing()
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                    {"role": "system", "content": "You are BB, a large language model trained by OpenAI. Answer as concisely as possible."},
+                    {"role": "user", "content": prompt}
+                ]
+        ).choices[0].message.content
+        await ctx.send(response)
+
+    @commands.command(pass_context=True)
+    @commands.check(is_super)
     async def mindwipe(self, ctx):
-        self.context = {}
+        self.context = defaultdict(list)
         self.last_response = ""
         await ctx.send("What were we talking about?")
 
+    @commands.command(pass_context=True)
+    @commands.check(is_super)
+    async def history(self, ctx, *, name = None):
+        if name == None:
+            name = ctx.message.author.name
+        if self.context[name]:
+            tmp = "```\n"
+            for item in self.context[name]:
+                tmp += item + "\n"
+            tmp += "```"
+            await ctx.send(tmp)
+        else:
+            await ctx.send("`No history for that user.`")
+        
 async def setup(bot):
-    await bot.add_cog(ChatGPTCog(bot))
+    await bot.add_cog(TurboCog(bot))

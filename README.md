@@ -6,7 +6,7 @@ BB is my latest python discord bot written using Discord.py. She functions pimar
 
 Python 3.9
 
-pip install discord.py vt openai
+pip install -r requirements.txt
 
 ## NOTES
 
@@ -17,4 +17,4 @@ name before the application will run.
 
 ### TO-DO
 
-Incremental changes at this point.
+Convert references of openai_name to self.bot.user.name

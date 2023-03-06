@@ -50,6 +50,16 @@ class AdminCog(commands.Cog):
 		exit()
 
 	# Cog Management
+	@commands.command(name='modules', aliases=['extensions'], hidden=True)
+	@commands.check(is_super)
+	async def list_extensions(self, ctx):
+		"""Command which Lists loaded Modules."""
+		tmp = "```\n"
+		for item in self.bot.extensions:
+			tmp += item + "\n"
+		tmp += "```"
+		await ctx.send(tmp)
+
 	@commands.command(name='load', hidden=True)
 	@commands.check(is_super)
 	async def extension_load(self, ctx, *, cog: str):
