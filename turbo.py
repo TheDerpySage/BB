@@ -49,26 +49,35 @@ class TurboCog(commands.Cog):
     async def chatgpt_on_message(self, message):
         '''Function enables there to be a random chance for responses in the General chat'''
         # TODO: Add a heat system for a higher chance of response if theres more talking
+        # Recover chance if told to chill
+        if self.chance < bb_config.openai_auto_chance:
+            self.chance += 0.01
+        # Roll for chance
         roll = random.SystemRandom().uniform(0,1)
+        # Get General Chat
         general = self.bot.get_channel(bb_config.general_chat_id)
-        if message.channel == general and message.author != self.bot.user and message.content[:2] != "BB":
-            if self.chance >= roll:
-                await general.typing()
-                messages = [{"role": "system", "content": self.prompt_lead_in}]
-                chat = [message async for message in general.history(limit=self.max_context)]
-                for message in chat:
-                    if message.author.display_name == bb_config.openai_name:
-                        messages.append({"role": "assistant", "content": message.author.display_name + ": " + message.content})
-                    else: messages.append({"role": "user", "content": message.author.display_name + ": " + message.content})
-                response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    messages=messages
-                )
-                if response.choices[0].message.content[:4] == "BB: ": 
-                    tmp = response.choices[0].message.content[4:] 
-                else : tmp = response.choices[0].message.content 
-                self.last_response = tmp
-                await general.send(tmp)
+        # Check for General Chat, That the message wasnt sent by BB,
+        # that the message wasnt already directed towards BB, and that we pass the roll
+        if message.channel == general and message.author != self.bot.user and message.content[:2] != "BB" and self.chance > roll:
+            await general.typing()
+            # Using chat for context was gettin weird, so I'm appending the prompt lead in to try to keep her focused.
+            messages = [{"role": "system", "content": self.prompt_lead_in + " You are in a chat with multiple users, each message structured as 'username: message'. Contribute to the conversation naturally."}]
+            chat = [message async for message in general.history(limit=self.max_context)]
+            for message in chat[::-1]:
+                if message.author.display_name == bb_config.openai_name:
+                    messages.append({"role": "assistant", "content": message.author.display_name + ": " + message.content})
+                else: messages.append({"role": "user", "content": message.author.display_name + ": " + message.content})
+            #messages.append({"role": "assistant", "content": self.last_response})
+            #messages.append({"role": "user", "content": message.author.display_name + ": " + message.content})
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=messages
+            )
+            if response.choices[0].message.content[:4] == "BB: ": 
+                tmp = response.choices[0].message.content[4:] 
+            else : tmp = response.choices[0].message.content 
+            self.last_response = tmp
+            await general.send(tmp)
 
     @commands.command(pass_context=True)
     @commands.check(is_super)
@@ -103,6 +112,12 @@ class TurboCog(commands.Cog):
             await ctx.send(tmp)
         else:
             await ctx.send("`No history for that user.`")
+
+    @commands.command(pass_context=True)
+    @commands.check(is_super)
+    async def chill(self, ctx):
+        self.chance = 0
+        await ctx.send("Fine, jeez.")
         
 async def setup(bot):
     await bot.add_cog(TurboCog(bot))
