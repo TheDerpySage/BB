@@ -33,6 +33,8 @@ class TurboCog(commands.Cog):
             await ctx.typing()
             self.context[ctx.message.author.name].append(
                 ctx.message.author.display_name + ": " + ctx.message.content)
+            if len(self.context[ctx.message.author.name]) > self.max_context:
+                self.context[ctx.message.author.name] = self.context[ctx.message.author.name][len(self.context[ctx.message.author.name])-self.max_context:]
             messages = [{"role": "system", "content": self.prompt_lead_in + " Do not prepend your messages with '" + self.name + ": '."}]
             for item in self.context[ctx.message.author.name]:
                 if item[:len(self.name + ": ")] == self.name + ": ":
@@ -41,7 +43,9 @@ class TurboCog(commands.Cog):
                     messages.append({"role": "user", "content": item})
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
-                messages=messages
+                messages=messages,
+                temperature=0.8,
+                frequency_penalty=0.5
             )
             if response.choices[0].message.content[:len(self.name + ": ")] == self.name + ": ":
                 tmp = response.choices[0].message.content[len(
@@ -81,7 +85,9 @@ class TurboCog(commands.Cog):
                         {"role": "user", "content": message.author.display_name + ": " + message.content})
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
-                messages=messages
+                messages=messages,
+                temperature=0.8,
+                frequency_penalty=0.5
             ).choices[0].message.content
             self.last_response = response
             await general.send(response)
@@ -95,7 +101,9 @@ class TurboCog(commands.Cog):
             messages=[
                 {"role": "system", "content": "You are " + self.name + ", a large language model trained by OpenAI. Answer as concisely as possible."},
                 {"role": "user", "content": prompt}
-            ]
+            ],
+            temperature=0,
+            frequency_penalty=0
         ).choices[0].message.content
         await ctx.send(response)
 
