@@ -11,18 +11,22 @@ from emailer import Emailer
 
 # For Myself, Server Owner, and a pre-designated Super Role
 def is_super(ctx):
-	return (ctx.message.author.id == bb_config.owner_id) or (ctx.message.author == ctx.message.guild.owner) or (discord.utils.get(ctx.message.author.roles, name=bb_config.super_role) != None)
+    return (ctx.message.author.id == bb_config.owner_id) or (ctx.message.author == ctx.message.guild.owner) or (discord.utils.get(ctx.message.author.roles, name=bb_config.super_role) != None)
 
-# Some Neccessary Functions 
+
+# Some Neccessary Functions
 def ping(host):
-    #OS Neutral Ping
+    # OS Neutral Ping
     assert (os.name == 'posix' or os.name == 'nt'), "Unrecognized os.name"
     if os.name == 'posix':
-        result = subprocess.run(['ping', '-c', '1', '-W', '3', host], stdout=subprocess.DEVNULL)
+        result = subprocess.run(
+            ['ping', '-c', '1', '-W', '3', host], stdout=subprocess.DEVNULL)
         return result.returncode
     elif os.name == 'nt':
-        result = subprocess.run(['ping', '/r', '1', '/w', '3', host], stdout=subprocess.DEVNULL)
+        result = subprocess.run(
+            ['ping', '/r', '1', '/w', '3', host], stdout=subprocess.DEVNULL)
         return result.returncode
+
 
 def string_ping(host):
     response = ping(host)
@@ -31,6 +35,7 @@ def string_ping(host):
     else:
         return (host + " is unreachable.")
 
+
 def bool_ping(host):
     response = ping(host)
     if response == 0:
@@ -38,13 +43,16 @@ def bool_ping(host):
     else:
         return False
 
+
 def socket_test(host, port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.settimeout(3)
     temp = sock.connect_ex((host, port))
-    if temp == 0: sock.shutdown(socket.SHUT_RDWR)
+    if temp == 0:
+        sock.shutdown(socket.SHUT_RDWR)
     sock.close()
     return temp
+
 
 def bool_socket(host, port):
     response = socket_test(host, port)
@@ -53,20 +61,21 @@ def bool_socket(host, port):
     else:
         return False
 
-# Reporting Object 
+# Reporting Object
 class Reporting(object):
     def __init__(self, bot, channel_id, givenServers, givenServices):
         self.servers = givenServers
         self.services = givenServices
-        #the report list keeps track of down servers already reported so we dont repeat notifications
+        # the report list keeps track of down servers already reported so we dont repeat notifications
         self.report = []
-        #the channel we send notifications to
+        # the channel we send notifications to
         self.channel = bot.get_channel(channel_id)
-        self.emailer = Emailer(bb_config.host, bb_config.username, bb_config.password)
+        self.emailer = Emailer(
+            bb_config.host, bb_config.username, bb_config.password)
 
     async def process(self):
         temp = self.report.copy()
-        for x in self.servers: 
+        for x in self.servers:
             # x[name, ip]
             res = bool_ping(x[1])
             if not res and bb_config.retryInterval > 0:
@@ -76,12 +85,12 @@ class Reporting(object):
                 if x[0] in self.report:
                     temp.remove(x[0])
                     await self.channel.send(":white_check_mark: " + x[0] + " is back up.")
-                #else still up so no need to repeat
-            else : 
+                # else still up so no need to repeat
+            else:
                 if x[0] not in self.report:
                     temp.append(x[0])
                     await self.channel.send(":no_entry: " + x[0] + " is unresponsive.")
-                #else still unresponsive so no need to repeat
+                # else still unresponsive so no need to repeat
         for x in self.services:
             # x[name, ip, port]
             res = bool_socket(x[1], x[2])
@@ -92,7 +101,7 @@ class Reporting(object):
                 if x[0] in self.report:
                     temp.remove(x[0])
                     await self.channel.send(":white_check_mark: " + x[0] + " is back up.")
-            else : 
+            else:
                 if x[0] not in self.report:
                     temp.append(x[0])
                     await self.channel.send(":no_entry: " + x[0] + " is down.")
@@ -116,7 +125,8 @@ class Reporting(object):
                         body += x.split('.')[0] + "\n"
                     body += "\n"
                 body += "Please login and check running services."
-                self.emailer.send_email(bb_config.send_alerts_to, 'Alert!', body)
+                self.emailer.send_email(
+                    bb_config.send_alerts_to, 'Alert!', body)
 
 
 # Cog Proper
@@ -126,7 +136,8 @@ class ServerCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         if bb_config.reporting:
-            self.reporting = Reporting(self.bot, bb_config.reporting_chat_id, bb_config.serverList, bb_config.serviceList)
+            self.reporting = Reporting(
+                self.bot, bb_config.reporting_chat_id, bb_config.serverList, bb_config.serviceList)
             print('Starting Monitoring Task...')
             self.monitor.start()
 
@@ -150,7 +161,7 @@ class ServerCog(commands.Cog):
             ldavg_string += "%s " % round(num, 2)
         with open('/proc/uptime', 'r') as f:
             uptime_seconds = float(f.readline().split()[0])
-            uptime_string = str(timedelta(seconds = uptime_seconds))
+            uptime_string = str(timedelta(seconds=uptime_seconds))
         await ctx.send("**System Info**\nHost: " + host + "\nLoad: " + ldavg_string + "\nUptime: " + uptime_string)
 
     @commands.command()
@@ -161,7 +172,8 @@ class ServerCog(commands.Cog):
         for x in bb_config.serviceList:
             if bool_socket(x[1], x[2]):
                 temp += x[0] + ": :white_check_mark:\n"
-            else : temp += x[0] + ": :no_entry:\n"
+            else:
+                temp += x[0] + ": :no_entry:\n"
         await ctx.send(temp)
 
     @commands.command()
@@ -172,9 +184,10 @@ class ServerCog(commands.Cog):
         for x in bb_config.serverList:
             if bool_ping(x[1]):
                 temp += x[0] + ": :white_check_mark:\n"
-            else : temp += x[0] + ": :no_entry:\n"
+            else:
+                temp += x[0] + ": :no_entry:\n"
         await ctx.send(temp)
-    
+
     @commands.command(name="wake", hidden=True)
     @commands.check(is_super)
     async def wol(self, ctx, *, mac):
@@ -187,7 +200,7 @@ class ServerCog(commands.Cog):
         await ctx.send("Letting Lily know she can stop.")
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect(("192.168.1.2", 42069))
-        s.send(bytes("EXIT","utf-8"))
+        s.send(bytes("EXIT", "utf-8"))
         s.close()
 
     @tasks.loop(seconds=bb_config.checkInterval)
@@ -204,7 +217,8 @@ class ServerCog(commands.Cog):
         if bb_config.reporting:
             await ctx.send("OK, checking...")
             await self.reporting.process()
-        else : await ctx.send("Monitoring not enabled.")
+        else:
+            await ctx.send("Monitoring not enabled.")
 
     @commands.command(name="broken", aliases=["report"])
     async def whats_broken(self, ctx):
@@ -215,7 +229,8 @@ class ServerCog(commands.Cog):
                 temp += x + "\n"
             temp += "```"
             await ctx.send(temp)
-        else: await ctx.send("Report is empty.")
+        else:
+            await ctx.send("Report is empty.")
 
 
 async def setup(bot):

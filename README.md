@@ -17,4 +17,4 @@ name before the application will run.
 
 ### TO-DO
 
-Convert references of openai_name to self.bot.user.name
+Continue to improve turbo.
