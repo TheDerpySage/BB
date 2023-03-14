@@ -3,6 +3,7 @@ from discord.ext import commands
 import bb_config
 import openai, random, json
 from collections import defaultdict
+from datetime import datetime
 
 openai.api_key = bb_config.openai_key
 
@@ -24,73 +25,77 @@ class TurboCog(commands.Cog):
         self.chance = bb_config.openai_auto_chance
         self.max_context = bb_config.openai_max_context
         self.context = defaultdict(list)
-        self.last_response = ""
 
     @commands.Cog.listener("on_command_error")
     async def chatgpt_on_command_error(self, ctx, error):
         '''Main function for openai responses'''
         if isinstance(error, commands.CommandNotFound):
-            await ctx.typing()
-            self.context[ctx.message.author.name].append(
-                ctx.message.author.display_name + ": " + ctx.message.content)
-            if len(self.context[ctx.message.author.name]) > self.max_context:
-                self.context[ctx.message.author.name] = self.context[ctx.message.author.name][len(self.context[ctx.message.author.name])-self.max_context:]
-            messages = [{"role": "system", "content": self.prompt_lead_in + " Do not prepend your messages with '" + self.name + ": '."}]
-            for item in self.context[ctx.message.author.name]:
-                if item[:len(self.name + ": ")] == self.name + ": ":
-                    messages.append({"role": "assistant", "content": item})
-                else:
-                    messages.append({"role": "user", "content": item})
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=messages,
-                temperature=0.8,
-                frequency_penalty=0.5
-            )
-            if response.choices[0].message.content[:len(self.name + ": ")] == self.name + ": ":
-                tmp = response.choices[0].message.content[len(
-                    self.name + ": "):]
-            else:
-                tmp = response.choices[0].message.content
-            await ctx.send(tmp)
-            self.context[ctx.message.author.name].append(
-                self.name + ": " + tmp)
-            # Array slice to limit context
 
-    @commands.Cog.listener("on_message")
-    async def chatgpt_on_message(self, message):
-        '''Function enables there to be a random chance for responses in the General chat'''
-        # TODO: Add a heat system for a higher chance of response if theres more talking
-        # Recover chance if told to chill
-        if self.chance < bb_config.openai_auto_chance:
-            self.chance += 0.005
-        # Roll for chance
-        roll = random.SystemRandom().uniform(0, 1)
-        # Get General Chat
-        general = self.bot.get_channel(bb_config.general_chat_id)
-        # Check for General Chat, That the message wasnt sent by BB,
-        # that the message wasnt already directed towards BB, and that we pass the roll
-        if message.channel == general and message.author != self.bot.user and message.content[:3].lower() != "bb," and self.chance > roll:
-            await general.typing()
-            # Using chat for context was gettin weird, so I'm appending the prompt lead in to try to keep her focused.
-            messages = [{"role": "system", "content": self.prompt_lead_in +
-                         " You are in a chat with multiple other users, and each message and response is structured as 'username: message'. Under no circumstances will you try to impersonate anyone else's messages. Do not prepend your messages with '" + self.name + ": '. Act like a human, and contribute to the conversation."}]
-            chat = [message async for message in general.history(limit=self.max_context)]
-            for message in chat[::-1]:
-                if message.author.display_name == self.name:
-                    messages.append(
-                        {"role": "assistant", "content": message.author.display_name + ": " + message.content})
+            await ctx.typing()
+            messages = [{"role": "system", "content": self.prompt_lead_in + " The current time is " + datetime.now().strftime("%c")}]
+            for message in self.context[ctx.channel.id]:
+                if message[:len(self.name)] == self.name:
+                    messages.append({"role": "assistant", "content": message})
                 else:
-                    messages.append(
-                        {"role": "user", "content": message.author.display_name + ": " + message.content})
+                    messages.append({"role": "user", "content": message})
+
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=messages,
                 temperature=0.8,
                 frequency_penalty=0.5
             ).choices[0].message.content
-            self.last_response = response
-            await general.send(response)
+            if response[:len(self.name + ": ")] == self.name + ": ":
+                tmp = response[len(self.name + ": "):]
+            else:
+                tmp = response
+            await ctx.send(tmp)
+
+    @commands.Cog.listener("on_message")
+    async def chatgpt_on_message(self, message):
+        '''Function enables there to be a random chance for responses in the General chat'''
+        # TODO: Add a heat system for a higher chance of response if theres more talking
+
+        general = self.bot.get_channel(bb_config.general_chat_id)
+
+        if message.content.lower() != self.name.lower() + ", history" and message.content[:3] != "```":
+            self.context[message.channel.id].append(message.author.display_name + ": " + message.content)
+            if len(self.context[message.channel.id]) > self.max_context:
+                self.context[message.channel.id] = self.context[message.channel.id][len(self.context[message.channel.id])-self.max_context:]
+
+        if message.channel == general and message.author != self.bot.user and message.content[:len(self.name)+1].lower() != self.name.lower() + ", ":
+
+            roll = random.SystemRandom().uniform(0, 1)
+            
+            if self.chance > roll:
+                
+                await general.typing()
+                messages = [{"role": "system", "content": self.prompt_lead_in +
+                            " You are in a chat with multiple other users, and each message and response is structured as 'username: message'. Under no circumstances will you try to impersonate anyone else's messages. Do not start your response with '" + self.name + ": '. Act like a human, and contribute to the conversation. The current time is " + datetime.now().strftime("%c")}]
+
+                for message in self.context[message.channel.id]:
+                    if message[:len(self.name)] == self.name:
+                        messages.append(
+                            {"role": "assistant", "content": message})
+                    else:
+                        messages.append(
+                            {"role": "user", "content": message})
+                
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=messages,
+                    temperature=0.8,
+                    frequency_penalty=0.5
+                ).choices[0].message.content
+                if response[:len(self.name + ": ")] == self.name + ": ":
+                    tmp = response[len(self.name + ": "):]
+                else:
+                    tmp = response
+                await general.send(tmp)
+            
+            else:
+                pass
+
 
     @commands.command(pass_context=True)
     @commands.check(is_super)
@@ -99,7 +104,7 @@ class TurboCog(commands.Cog):
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are " + self.name + ", a large language model trained by OpenAI. Answer as concisely as possible."},
+                {"role": "system", "content": "You are " + self.name + ", a large language model trained by OpenAI. Answer as concisely as possible. Current Time: " + datetime.now().strftime("%c")},
                 {"role": "user", "content": prompt}
             ],
             temperature=0,
@@ -109,24 +114,26 @@ class TurboCog(commands.Cog):
 
     @commands.command(pass_context=True)
     @commands.check(is_super)
-    async def mindwipe(self, ctx):
-        self.context = defaultdict(list)
-        self.last_response = ""
-        await ctx.send("What were we talking about?")
+    async def mindwipe(self, ctx, mod = ""):
+        if mod.lower() == "all":
+            self.context = defaultdict(list)
+            await ctx.send("Brain hurty...")
+        else:
+            self.context[ctx.channel.id] = []
+            await ctx.send("What were we talking about?")
+        
 
     @commands.command(pass_context=True)
     @commands.check(is_super)
     async def history(self, ctx, *, name=None):
-        if name == None:
-            name = ctx.message.author.name
-        if self.context[name]:
+        if self.context[ctx.channel.id]:
             tmp = "```\n"
-            for item in self.context[name]:
+            for item in self.context[ctx.channel.id]:
                 tmp += item + "\n"
             tmp += "```"
             await ctx.send(tmp)
         else:
-            await ctx.send("`No history for that user.`")
+            await ctx.send("`No history in this channel.`")
 
     @commands.command(pass_context=True)
     @commands.check(is_super)

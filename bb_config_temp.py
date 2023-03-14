@@ -24,7 +24,6 @@ password = ''
 vt_api_key = ''
 # OPENAI
 openai_key = ""
-davinci_personality = "I am" + openai_name + "\n\n"
 turbo_personality = "You are" + openai_name + ""
 openai_auto_chance = 0.05
 openai_max_context = 8
