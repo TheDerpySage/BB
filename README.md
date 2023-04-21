@@ -1,6 +1,6 @@
-# BB
+# BB - Generic
 
-BB is my latest python discord bot written using Discord.py. She functions pimarily as a server monitor for my home network, she includes an automated process for checking the health of certain servers so I may be alerted of downtime. She also runs some administrative tasks on my community server.
+This is a generic bot with some of the features of BB that can be redeployed in other places. 
 
 ## DEPENDENCIES
 

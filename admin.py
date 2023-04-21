@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import bb_config
+import bot_config
 import aiohttp, asyncio
 
 # Self made check since is_owner() doesnt appear to be working and includes server owner
@@ -151,7 +151,7 @@ class AdminCog(commands.Cog):
 	@commands.command(aliases=['about'])
 	async def credits(self, ctx):
 		'''Show credits.'''
-		await ctx.send("`BB created by TheDerpySage.\nHosted on vinny.thederpysage.com.\nQuestions/Concerns? Contact via Discord.\n@TheDerpySage#2049`")
+		await ctx.send("`Bot created by TheDerpySage.\nHosted on vinny.thederpysage.com.\nQuestions/Concerns? Contact via Discord.\n@TheDerpySage#2049`")
 
 async def setup(bot):
 	await bot.add_cog(AdminCog(bot))

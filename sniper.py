@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-import bb_config
 
 class SniperCog(commands.Cog):
     '''Sniper!!!'''

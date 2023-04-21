@@ -7,13 +7,13 @@ import discord.abc
 import sys
 import traceback
 from datetime import datetime
-import bb_config
+import bot_config
 
 
 def get_prefix(bot, msg):
     """A callable Prefix for our bot. This could be edited to allow per server prefixes."""
     prefixes = [bot.user.name[0:1].lower()+'$', bot.user.name+', ',
-                bot.user.name.lower()+', ', "Ladies, ", "BB, "]
+                bot.user.name.lower()+', ']
     # Check to see if we are outside of a guild. e.g DM's etc.
     if msg.channel is None:
         return ''

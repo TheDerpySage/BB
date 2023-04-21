@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import bb_config
+import bot_config
 import openai, random, json
 from collections import defaultdict
 from datetime import datetime
