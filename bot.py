@@ -1,6 +1,3 @@
-# Dedicated to Richard V DeCamp
-# Thanks for believing in me
-
 import discord
 from discord.ext import commands
 import discord.abc
@@ -23,7 +20,7 @@ def get_prefix(bot, msg):
 
 desc = '''Written and Developed by theDerpySage'''
 
-startup_extensions = bb_config.default_extensions
+startup_extensions = bot_config.default_extensions
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix=get_prefix,
                    description=desc, intents=intents)
@@ -45,21 +42,21 @@ async def on_ready():
                 traceback.print_exc()
     print('Successfully logged in and booted...!')
     # Log Channel for her DMs
-    log_channel = bot.get_channel(bb_config.log_chat_id)
-    if not bb_config.CONNECTED:
+    log_channel = bot.get_channel(bot_config.log_chat_id)
+    if not bot_config.CONNECTED:
         await log_channel.send("Connected.")
-        bb_config.CONNECTED = True
+        bot_config.CONNECTED = True
     else:
         await log_channel.send("Connection was dropped, reconnected now.")
 
 
 @bot.event
 async def on_message(message):
-    log_channel = bot.get_channel(bb_config.log_chat_id)
+    log_channel = bot.get_channel(bot_config.log_chat_id)
     # Checks if its a DM
     if isinstance(message.channel, discord.abc.PrivateChannel):
         # Makes sure it's not her talking, may be a good idea to delete just to make sure DMs are actually sending...
-        if message.author.id != bb_config.client_id:
+        if message.author.id != bot_config.client_id:
             # Name, ID, and message from the DM
             temp = message.author.name + " : " + message.content
             # Post any attachments too
@@ -79,4 +76,4 @@ async def on_command_error(ctx, error):
     else:
         await ctx.send("`" + str(error) + "`")
 
-bot.run(bb_config.token, reconnect=True)
+bot.run(bot_config.token, reconnect=True)

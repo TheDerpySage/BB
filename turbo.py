@@ -5,11 +5,11 @@ import openai, random, json
 from collections import defaultdict
 from datetime import datetime
 
-openai.api_key = bb_config.openai_key
+openai.api_key = bot_config.openai_key
 
 # For Myself, Server Owner, and a pre-designated Super Role
 def is_super(ctx):
-    return (ctx.message.author.id == bb_config.owner_id) or (ctx.message.author == ctx.message.guild.owner) or (discord.utils.get(ctx.message.author.roles, name=bb_config.super_role) != None)
+    return (ctx.message.author.id == bot_config.owner_id) or (ctx.message.author == ctx.message.guild.owner) or (discord.utils.get(ctx.message.author.roles, name=bot_config.super_role) != None)
 
 
 class TurboCog(commands.Cog):
@@ -21,9 +21,9 @@ class TurboCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.name = self.bot.user.name
-        self.prompt_lead_in = bb_config.turbo_personality % self.name
-        self.chance = bb_config.openai_auto_chance
-        self.max_context = bb_config.openai_max_context
+        self.prompt_lead_in = bot_config.openai_personality % self.name
+        self.chance = bot_config.openai_auto_chance
+        self.max_context = bot_config.openai_max_context
         self.context = defaultdict(list)
 
     @commands.Cog.listener("on_command_error")
@@ -56,7 +56,7 @@ class TurboCog(commands.Cog):
         '''Function enables there to be a random chance for responses in the General chat'''
         # TODO: Add a heat system for a higher chance of response if theres more talking
 
-        general = self.bot.get_channel(bb_config.general_chat_id)
+        general = self.bot.get_channel(bot_config.general_chat_id)
 
         if message.content.lower() != self.name.lower() + ", history" and message.content[:3] != "```":
             self.context[message.channel.id].append(message.author.display_name + ": " + message.content)

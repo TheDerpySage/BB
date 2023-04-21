@@ -9,7 +9,7 @@ owner_id = 0
 super_role = ""
 # OPENAI
 openai_key = ""
-turbo_personality = "You are" + openai_name + ""
+openai_personality = "You are" + openai_name + ""
 openai_auto_chance = 0.05
 openai_max_context = 8
 # OTHER

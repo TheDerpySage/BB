@@ -1,6 +1,6 @@
 # BB - Generic
 
-This is a generic bot with some of the features of BB that can be redeployed in other places. 
+This is a generic bot with some of the features of BB that can be redeployed in other places.
 
 ## DEPENDENCIES
 

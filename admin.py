@@ -6,7 +6,7 @@ import aiohttp, asyncio
 # Self made check since is_owner() doesnt appear to be working and includes server owner
 # For Myself and the Server Owner
 def is_super(ctx):
-	return (ctx.message.author.id == bb_config.owner_id) or (ctx.message.author == ctx.message.guild.owner) or (discord.utils.get(ctx.message.author.roles, name=bb_config.super_role) != None)
+	return (ctx.message.author.id == bot_config.owner_id) or (ctx.message.author == ctx.message.guild.owner) or (discord.utils.get(ctx.message.author.roles, name=bot_config.super_role) != None)
 
 # Async method to load the bytes of a file and return bytes
 async def downloadBytes(session: aiohttp.ClientSession, url: str):
