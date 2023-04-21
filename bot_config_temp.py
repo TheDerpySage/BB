@@ -9,7 +9,7 @@ owner_id = 0
 super_role = ""
 # OPENAI
 openai_key = ""
-openai_personality = "You are" + openai_name + ""
+openai_personality = "You are %s"   # %s will be automatically filled in with the username of the bot
 openai_auto_chance = 0.05
 openai_max_context = 8
 # OTHER
