@@ -1,27 +1,24 @@
 import discord
 from discord.ext import commands
 import bb_config
-import openai, random, json
+import requests, random, json
 from collections import defaultdict
 from datetime import datetime
-
-openai.api_key = bb_config.openai_key
 
 # For Myself, Server Owner, and a pre-designated Super Role
 def is_super(ctx):
     return (ctx.message.author.id == bb_config.owner_id) or (ctx.message.author == ctx.message.guild.owner) or (discord.utils.get(ctx.message.author.roles, name=bb_config.super_role) != None)
 
-
-class TurboCog(commands.Cog):
+class KosuzuCog(commands.Cog):
     '''
-    ChatGPT Support
-    Overrides CommandNotFound and sends your message to gpt-3.5-turbo
+    Pygmalion being hosted on KoboldAI Support
+    Overrides CommandNotFound and sends your message to Kosuzu
     '''
 
     def __init__(self, bot):
         self.bot = bot
         self.name = self.bot.user.name
-        self.prompt_lead_in = bb_config.turbo_personality % self.name
+        self.prompt = bb_config.kosuzu_personality % self.name
         self.chance = bb_config.openai_auto_chance
         self.max_context = bb_config.openai_max_context
         self.context = defaultdict(list)
@@ -32,24 +29,28 @@ class TurboCog(commands.Cog):
         if isinstance(error, commands.CommandNotFound):
 
             await ctx.typing()
-            messages = [{"role": "system", "content": self.prompt_lead_in + " The current time is " + datetime.now().strftime("%c")}]
+            messages = self.prompt
             for message in self.context[ctx.channel.id]:
-                if message[:len(self.name)] == self.name:
-                    messages.append({"role": "assistant", "content": message})
-                else:
-                    messages.append({"role": "user", "content": message})
+                messages += message + '\n'
+            messages += "%s:" % self.name
+            
+            parameters = {
+                "prompt": messages,
+                "temperature": 0.8,
+                "top_p": 0.9,
+                "singleline": "True"
+            }
 
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=messages,
-                temperature=0.8,
-                frequency_penalty=0.5
-            ).choices[0].message.content
-            if response[:len(self.name + ": ")] == self.name + ": ":
-                tmp = response[len(self.name + ": "):]
-            else:
-                tmp = response
-            await ctx.send(tmp)
+            response = requests.post("http://kosuzu.thederpysage.com:5000/api/v1/generate", json=parameters)
+
+            if response.status_code == 200:
+                await ctx.send(json.loads(response.text)['results'][0]['text'].strip())
+            elif response.status_code == 503:
+                await ctx.send("`Server is busy; please try again later...`")
+            elif response.status_code == 507:
+                await ctx.send("`Server ran out of memory, yell at Majora about this...`")
+            else: 
+                await ctx.send("`" f"Status Code: {response.status_code}, Response: {response.text}" "`")
 
     @commands.Cog.listener("on_message")
     async def chatgpt_on_message(self, message):
@@ -70,48 +71,30 @@ class TurboCog(commands.Cog):
             if self.chance > roll:
                 
                 await general.typing()
-                messages = [{"role": "system", "content": self.prompt_lead_in +
-                            " You are in a chat with multiple other users, and each message and response is structured as 'username: message'. Under no circumstances will you try to impersonate anyone else's messages. Do not start your response with '" + self.name + ": '. Act like a human, and contribute to the conversation. The current time is " + datetime.now().strftime("%c")}]
-
+                messages = self.prompt
                 for message in self.context[message.channel.id]:
-                    if message[:len(self.name)] == self.name:
-                        messages.append(
-                            {"role": "assistant", "content": message})
-                    else:
-                        messages.append(
-                            {"role": "user", "content": message})
+                    messages += message + '\n'
+                messages += "%s:" % self.name
                 
-                response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    messages=messages,
-                    temperature=0.8,
-                    frequency_penalty=0.5
-                ).choices[0].message.content
-                if response[:len(self.name + ": ")] == self.name + ": ":
-                    tmp = response[len(self.name + ": "):]
-                else:
-                    tmp = response
-                await general.send(tmp)
-            
+                parameters = {
+                    "prompt": messages,
+                    "temperature": 0.8,
+                    "top_p": 0.9,
+                    "singleline": "True"
+                }
+
+                response = requests.post("http://kosuzu.thederpysage.com:5000/api/v1/generate", json=parameters)
+
+                if response.status_code == 200:
+                    await ctx.send(json.loads(response.text)['results'][0]['text'].strip())
+                elif response.status_code == 503:
+                    await ctx.send("`Server is busy; please try again later...`")
+                elif response.status_code == 507:
+                    await ctx.send("`Server ran out of memory, yell at Majora about this...`")
+                else: 
+                    await ctx.send("`" f"Status Code: {response.status_code}, Response: {response.text}" "`")
             else:
                 pass
-
-
-    @commands.command(pass_context=True)
-    @commands.check(is_super)
-    async def prompt(self, ctx, *, prompt):
-        """Construct a direct prompt, without the personality or context."""
-        await ctx.typing()
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are " + self.name + ", a large language model trained by OpenAI. Answer as concisely as possible. Current Time: " + datetime.now().strftime("%c")},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0,
-            frequency_penalty=0
-        ).choices[0].message.content
-        await ctx.send(response)
 
     @commands.command(pass_context=True)
     @commands.check(is_super)
@@ -147,4 +130,4 @@ class TurboCog(commands.Cog):
 
 
 async def setup(bot):
-    await bot.add_cog(TurboCog(bot))
+    await bot.add_cog(KosuzuCog(bot))
