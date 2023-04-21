@@ -14,6 +14,7 @@ class SniperCog(commands.Cog):
 
     @commands.command(pass_context=True)
     async def snipe(self, ctx):
+        """Repeats the last deleted message."""
         if(ctx.channel in self.log):
             await ctx.send(self.log[ctx.channel])
         else : await ctx.send("Nothing to snipe...")

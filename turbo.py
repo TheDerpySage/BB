@@ -100,6 +100,7 @@ class TurboCog(commands.Cog):
     @commands.command(pass_context=True)
     @commands.check(is_super)
     async def prompt(self, ctx, *, prompt):
+        """Construct a direct prompt, without the custom written personality"""
         await ctx.typing()
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
@@ -115,6 +116,7 @@ class TurboCog(commands.Cog):
     @commands.command(pass_context=True)
     @commands.check(is_super)
     async def mindwipe(self, ctx, mod = ""):
+        """Clears the bots memory from this channel, or add all to clear all."""
         if mod.lower() == "all":
             self.context = defaultdict(list)
             await ctx.send("Brain hurty...")
@@ -126,6 +128,7 @@ class TurboCog(commands.Cog):
     @commands.command(pass_context=True)
     @commands.check(is_super)
     async def history(self, ctx, *, name=None):
+        """See bots memory for the current channel."""
         if self.context[ctx.channel.id]:
             tmp = "```\n"
             for item in self.context[ctx.channel.id]:
@@ -138,6 +141,7 @@ class TurboCog(commands.Cog):
     @commands.command(pass_context=True)
     @commands.check(is_super)
     async def chill(self, ctx):
+        """Temporarily Zero out bots random chance to respond."""
         self.chance = 0
         await ctx.send("Fine, jeez.")
 

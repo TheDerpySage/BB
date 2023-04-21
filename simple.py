@@ -8,7 +8,7 @@ class SimpleCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(aliases=['hi', 'howdy', 'hello'])
+    @commands.command(aliases=['hi', 'howdy'])
     async def hello(self, ctx):
         """Greet the bot."""
         await ctx.send('Hello.')

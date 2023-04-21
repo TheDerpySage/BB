@@ -18,7 +18,7 @@ def get_prefix(bot, msg):
     return commands.when_mentioned_or(*prefixes)(bot, msg)
 
 
-desc = '''Written and Developed by theDerpySage'''
+desc = '''Written and Developed by TheDerpySage'''
 
 startup_extensions = bot_config.default_extensions
 intents = discord.Intents.all()
