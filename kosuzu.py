@@ -38,7 +38,8 @@ class KosuzuCog(commands.Cog):
                 "prompt": messages,
                 "temperature": 0.8,
                 "top_p": 0.9,
-                "singleline": "True"
+                "singleline": "True",
+                "frmttriminc": "True"
             }
 
             response = requests.post("http://kosuzu.thederpysage.com:5000/api/v1/generate", json=parameters)
@@ -59,7 +60,7 @@ class KosuzuCog(commands.Cog):
 
         general = self.bot.get_channel(bb_config.general_chat_id)
 
-        if message.content.lower() != self.name.lower() + ", history" and message.content[:3] != "```":
+        if message.content.lower() != self.name.lower() + ", history" and message.content[:1] != "`":
             self.context[message.channel.id].append(message.author.display_name + ": " + message.content)
             if len(self.context[message.channel.id]) > self.max_context:
                 self.context[message.channel.id] = self.context[message.channel.id][len(self.context[message.channel.id])-self.max_context:]
@@ -80,32 +81,32 @@ class KosuzuCog(commands.Cog):
                     "prompt": messages,
                     "temperature": 0.8,
                     "top_p": 0.9,
-                    "singleline": "True"
+                    "singleline": "True",
+                    "frmttriminc": "True"
                 }
 
                 response = requests.post("http://kosuzu.thederpysage.com:5000/api/v1/generate", json=parameters)
 
                 if response.status_code == 200:
-                    await ctx.send(json.loads(response.text)['results'][0]['text'].strip())
+                    await general.send(json.loads(response.text)['results'][0]['text'].strip())
                 elif response.status_code == 503:
-                    await ctx.send("`Server is busy; please try again later...`")
+                    await general.send("`Server is busy; please try again later...`")
                 elif response.status_code == 507:
-                    await ctx.send("`Server ran out of memory, yell at Majora about this...`")
+                    await general.send("`Server ran out of memory, yell at Majora about this...`")
                 else: 
-                    await ctx.send("`" f"Status Code: {response.status_code}, Response: {response.text}" "`")
+                    await general.send("`" f"Status Code: {response.status_code}, Response: {response.text}" "`")
             else:
                 pass
 
     @commands.command(pass_context=True)
     @commands.check(is_super)
     async def mindwipe(self, ctx, mod = ""):
-        """Clears the bots memory from this channel, or add all to clear all."""
+        """Clears the bots memory from this channel. Add 'all' to clear all."""
         if mod.lower() == "all":
             self.context = defaultdict(list)
-            await ctx.send("Brain hurty...")
         else:
             self.context[ctx.channel.id] = []
-            await ctx.send("What were we talking about?")
+        await ctx.send("`SUCCESS`")
         
 
     @commands.command(pass_context=True)

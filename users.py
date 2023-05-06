@@ -129,7 +129,7 @@ class UsersCog(commands.Cog):
         else: 
             user = ctx.message.author
         if user != None:
-            await ctx.send(user.avatar_url)
+            await ctx.send(user.display_avatar.url)
         else : await ctx.send("No such user.")
 
 async def setup(bot):

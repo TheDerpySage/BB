@@ -132,7 +132,7 @@ class AdminCog(commands.Cog):
 			session = aiohttp.ClientSession()
 			item = await downloadBytes(session, url)
 			await session.close()
-			await self.bot.user.edit(password=None, avatar=item)
+			await self.bot.user.edit(avatar=item)
 		except Exception as e:
 			await ctx.send('**`ERROR: %s`**' % e)
 		else:
