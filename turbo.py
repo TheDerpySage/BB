@@ -23,8 +23,10 @@ class TurboCog(commands.Cog):
         self.name = self.bot.user.name
         self.prompt_lead_in = bb_config.turbo_personality % self.name
         self.chance = bb_config.openai_auto_chance
+        self.max_chance = bb_config.openai_auto_chance
         self.max_context = bb_config.openai_max_context
         self.context = defaultdict(list)
+        self.chatty = True
 
     @commands.Cog.listener("on_command_error")
     async def chatgpt_on_command_error(self, ctx, error):
@@ -63,7 +65,7 @@ class TurboCog(commands.Cog):
             if len(self.context[message.channel.id]) > self.max_context:
                 self.context[message.channel.id] = self.context[message.channel.id][len(self.context[message.channel.id])-self.max_context:]
 
-        if message.channel == general and message.author != self.bot.user and message.content[:len(self.name)+1].lower() != self.name.lower() + ", ":
+        if message.channel == general and message.author != self.bot.user and message.content[:len(self.name)+1].lower() != self.name.lower() + ", " and self.chatty:
 
             roll = random.SystemRandom().uniform(0, 1)
             
@@ -93,9 +95,9 @@ class TurboCog(commands.Cog):
                     tmp = response
                 await general.send(tmp)
             
-            else:
-                pass
-
+            # Chance Recovery 
+            if self.chance < self.max_chance:
+                self.chance += 0.0025
 
     @commands.command(pass_context=True)
     @commands.check(is_super)
@@ -144,6 +146,17 @@ class TurboCog(commands.Cog):
         """Temporarily Zero out bots random chance to respond."""
         self.chance = 0
         await ctx.send("Fine, jeez.")
+
+    @commands.command(pass_context=True)
+    @commands.check(is_super)
+    async def chatty(self, ctx):
+        """Toggle Random Chats."""
+        if self.chatty:
+            self.chatty = False
+            await ctx.send("`Disabled Random Chat.`")
+        else:
+            self.chatty = True
+            await ctx.send("`Enabled Random Chat.`")
 
 
 async def setup(bot):

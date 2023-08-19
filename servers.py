@@ -13,7 +13,6 @@ from emailer import Emailer
 def is_super(ctx):
     return (ctx.message.author.id == bb_config.owner_id) or (ctx.message.author == ctx.message.guild.owner) or (discord.utils.get(ctx.message.author.roles, name=bb_config.super_role) != None)
 
-
 # Some Neccessary Functions
 def ping(host):
     # OS Neutral Ping
@@ -75,6 +74,7 @@ class Reporting(object):
 
     async def process(self):
         temp = self.report.copy()
+        message = ""
         for x in self.servers:
             # x[name, ip]
             res = bool_ping(x[1])
@@ -84,12 +84,12 @@ class Reporting(object):
             if res:
                 if x[0] in self.report:
                     temp.remove(x[0])
-                    await self.channel.send(":white_check_mark: " + x[0] + " is back up.")
+                    message += ":white_check_mark: " + x[0] + " is back up.\n"
                 # else still up so no need to repeat
             else:
                 if x[0] not in self.report:
                     temp.append(x[0])
-                    await self.channel.send(":no_entry: " + x[0] + " is unresponsive.")
+                    message += ":no_entry: " + x[0] + " is unresponsive.\n"
                 # else still unresponsive so no need to repeat
         for x in self.services:
             # x[name, ip, port]
@@ -100,11 +100,13 @@ class Reporting(object):
             if res:
                 if x[0] in self.report:
                     temp.remove(x[0])
-                    await self.channel.send(":white_check_mark: " + x[0] + " is back up.")
+                    message += ":white_check_mark: " + x[0] + " is back up.\n"
             else:
                 if x[0] not in self.report:
                     temp.append(x[0])
-                    await self.channel.send(":no_entry: " + x[0] + " is down.")
+                    message += ":no_entry: " + x[0] + " is down.\n"
+        # Send our message to Discord
+        await self.channel.send(message)
         # Get our differences based on our two reports
         recovered = set(self.report) - set(temp)
         died = set(temp) - set(self.report)
